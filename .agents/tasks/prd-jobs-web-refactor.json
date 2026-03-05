@@ -1,0 +1,990 @@
+{
+  "version": 1,
+  "project": "Improv Guesser Web Game",
+  "overview": "Build a pass-the-phone React party game where one player is the guesser and all other players receive hidden improv roles tied to a shared situation. The guesser can say a guess out loud at any time and then reveal the answer with confirmation to check win or loss.",
+  "goals": [
+    "Support 4+ players with one guesser and at least three mandatory performer roles",
+    "Keep each player's role reveal private during handoff",
+    "Provide reusable situation packs with mandatory and optional roles so groups of different sizes can play",
+    "Enable fast replay with the same players after each round",
+    "Situation chosen at random from pre-made situations when Random is selected",
+    "Allow each player to privately re-check their own role during live play if they forget it",
+    "Ship with 10 curated situations (the original 5 plus 5 generated scenarios)"
+  ],
+  "nonGoals": [
+    "No online multiplayer or real-time networking",
+    "No user accounts, matchmaking, or cloud persistence",
+    "No scoring system in this version",
+    "No AI-generated roles or situations in this version"
+  ],
+  "successMetrics": [
+    "A game can start from setup to first role reveal in under 60 seconds for 4-6 players",
+    "100% of rounds assign exactly one guesser and valid role cards to all remaining players",
+    "No player can view another player's role unless the device is physically shared",
+    "Every reveal action (role reveal and final answer reveal) requires explicit confirmation before hidden content is shown",
+    "The catalog contains exactly 10 playable situations with enough clue signals for the guesser to infer the setting",
+    "Build completes successfully with no runtime errors in local smoke testing"
+  ],
+  "openQuestions": [
+    "Should rounds include a configurable timer for guessing?",
+    "Should hosts be able to create custom situations in-app or only via JSON files?",
+    "Should we track multiple guess attempts or only final reveal outcome?",
+    "Should the game support multiple languages at launch?"
+  ],
+  "stack": {
+    "framework": "React 18 + Vite 5",
+    "hosting": "Static hosting (Vercel, Netlify, or Cloudflare Pages)",
+    "database": "None (in-memory round state only)",
+    "auth": "None"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "name": "Single-Page Game",
+      "purpose": "Runs setup, private reveal flow, and live play state transitions in one route"
+    }
+  ],
+  "uiNotes": [
+    "Mobile-first layout with large tap targets because the device is passed between players",
+    "Reveal flow must clearly separate pass, confirm identity, and reveal stages",
+    "Role text should be centered and compact to reduce shoulder-surfing during reveal",
+    "Error states should be explicit (duplicate names, too few players, incompatible situation)",
+    "Every hidden-content action includes a second explicit confirm step",
+    "Live phase must include a private 'Show My Role Again' flow with the same pass and confirm safeguards"
+  ],
+  "dataModel": [
+    {
+      "entity": "Player",
+      "fields": [
+        "name:string"
+      ]
+    },
+    {
+      "entity": "Role",
+      "fields": [
+        "name:string",
+        "mandatory:boolean",
+        "promptTemplate:string",
+        "communicationMode:'talk_mime'|'mime_only'|'draw_only'|'sound_only'|'silent'|'gibberish_only'",
+        "interactionWith:string[]",
+        "clueSignals:string[]"
+      ]
+    },
+    {
+      "entity": "Situation",
+      "fields": [
+        "id:string",
+        "name:string",
+        "guesserPromptTemplate:string",
+        "clueChecklist:string[]",
+        "roles:Role[]"
+      ]
+    },
+    {
+      "entity": "CardAssignment",
+      "fields": [
+        "playerName:string",
+        "type:'guesser'|'role'",
+        "title:string",
+        "prompt:string",
+        "rulesLabel:string",
+        "revealed:boolean"
+      ]
+    },
+    {
+      "entity": "GuessResolution",
+      "fields": [
+        "spokenGuess:string",
+        "actualSituationName:string",
+        "isCorrect:boolean",
+        "resolvedAt:datetime"
+      ]
+    },
+    {
+      "entity": "Round",
+      "fields": [
+        "players:string[]",
+        "guesser:string",
+        "situationId:string",
+        "cards:Record<string, CardAssignment>",
+        "phase:'setup'|'reveal'|'live'|'resolved'",
+        "guessResolution:GuessResolution|null"
+      ]
+    }
+  ],
+  "importFormat": {
+    "description": "JSON format for loading the full V1 situation catalog.",
+    "example": {
+      "situations": [
+        {
+          "id": "animal-shelter",
+          "name": "Animal Shelter",
+          "guesserPrompt": "{guesser}: _ _ _ at an _ _ _",
+          "clueChecklist": [
+            "animal sounds and movements",
+            "caretaker handling animals",
+            "family choosing a pet"
+          ],
+          "roles": [
+            {
+              "name": "Blue - Injured Dog",
+              "mandatory": true,
+              "prompt": "Mime pain and bark. No spoken words.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Yellow - Animal Caretaker"
+              ],
+              "clueSignals": [
+                "limping",
+                "barking"
+              ]
+            },
+            {
+              "name": "Green - Happy Cat",
+              "mandatory": true,
+              "prompt": "Mime cat behavior and meow. No spoken words.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Yellow - Animal Caretaker"
+              ],
+              "clueSignals": [
+                "purring",
+                "playful cat motions"
+              ]
+            },
+            {
+              "name": "Yellow - Animal Caretaker",
+              "mandatory": true,
+              "prompt": "Care for the animals and help visitors choose.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Blue - Injured Dog",
+                "Green - Happy Cat",
+                "Purple - Excited Child"
+              ],
+              "clueSignals": [
+                "feeding or calming animals",
+                "guiding visitors"
+              ]
+            },
+            {
+              "name": "Purple - Excited Child",
+              "mandatory": false,
+              "prompt": "You are 5 years old and want a pet. Do not say: adopt, shelter.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Red - Parent"
+              ],
+              "clueSignals": [
+                "pointing at pets",
+                "begging parent"
+              ]
+            },
+            {
+              "name": "Red - Parent",
+              "mandatory": false,
+              "prompt": "You came with Purple to choose a pet and prefer a dog.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Purple - Excited Child",
+                "Yellow - Animal Caretaker"
+              ],
+              "clueSignals": [
+                "asking pet questions",
+                "parent guidance"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "vet-clinic",
+          "name": "Vet Clinic",
+          "guesserPrompt": "{guesser}: brought a _ _ _ to a _ _ _",
+          "clueChecklist": [
+            "injured pet",
+            "medical exam behavior",
+            "owner describing symptoms"
+          ],
+          "roles": [
+            {
+              "name": "Blue - Injured Dog",
+              "mandatory": true,
+              "prompt": "Limp, bark, and show discomfort. No spoken words.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Purple - Dog Owner",
+                "Yellow - Veterinarian"
+              ],
+              "clueSignals": [
+                "limping",
+                "pain reactions"
+              ]
+            },
+            {
+              "name": "Yellow - Veterinarian",
+              "mandatory": true,
+              "prompt": "Examine pets and ask focused questions.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Purple - Dog Owner",
+                "Blue - Injured Dog"
+              ],
+              "clueSignals": [
+                "checkup motions",
+                "diagnosis behavior"
+              ]
+            },
+            {
+              "name": "Purple - Dog Owner",
+              "mandatory": true,
+              "prompt": "You brought Blue because it has been limping all week.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Yellow - Veterinarian",
+                "Blue - Injured Dog"
+              ],
+              "clueSignals": [
+                "explaining symptoms",
+                "concern for pet"
+              ]
+            },
+            {
+              "name": "Green - Cat Owner",
+              "mandatory": false,
+              "prompt": "You keep interrupting to ask if your pet is next.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Yellow - Veterinarian"
+              ],
+              "clueSignals": [
+                "queue frustration",
+                "holding pet carrier"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pirate-treasure",
+          "name": "Pirate Treasure",
+          "guesserPrompt": "{guesser}: trying to _ _ a _ _ map",
+          "clueChecklist": [
+            "ship crew actions",
+            "treasure navigation",
+            "captain leading team"
+          ],
+          "roles": [
+            {
+              "name": "Captain Cartographer",
+              "mandatory": true,
+              "prompt": "Draw the map route to treasure island.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Silent Helmsman",
+                "Seasick Mate"
+              ],
+              "clueSignals": [
+                "map drawing",
+                "pointing route"
+              ]
+            },
+            {
+              "name": "Silent Helmsman",
+              "mandatory": true,
+              "prompt": "Steer the ship. You cannot talk.",
+              "communicationMode": "silent",
+              "interactionWith": [
+                "Captain Cartographer"
+              ],
+              "clueSignals": [
+                "steering motions",
+                "course changes"
+              ]
+            },
+            {
+              "name": "Seasick Mate",
+              "mandatory": true,
+              "prompt": "You are seasick and can only mime your struggle.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Captain Cartographer"
+              ],
+              "clueSignals": [
+                "nausea mime",
+                "stumbling"
+              ]
+            },
+            {
+              "name": "Strict First Mate",
+              "mandatory": false,
+              "prompt": "Get the crew under control to find treasure faster.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Seasick Mate",
+                "Captain Cartographer"
+              ],
+              "clueSignals": [
+                "commanding crew",
+                "discipline gestures"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "stormy-night",
+          "name": "Stormy Night At Sea",
+          "guesserPrompt": "{guesser}: getting to _ _ _ through a _ _ _ night",
+          "clueChecklist": [
+            "storm navigation",
+            "crew panic and commands",
+            "searching for shore"
+          ],
+          "roles": [
+            {
+              "name": "Helmsman",
+              "mandatory": true,
+              "prompt": "Fight rough waves and keep the ship steady.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Captain"
+              ],
+              "clueSignals": [
+                "steering against waves",
+                "balance struggle"
+              ]
+            },
+            {
+              "name": "Seasick Mate",
+              "mandatory": true,
+              "prompt": "You are very seasick but still trying to help.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Captain"
+              ],
+              "clueSignals": [
+                "nausea",
+                "slow movement"
+              ]
+            },
+            {
+              "name": "Captain",
+              "mandatory": true,
+              "prompt": "Keep everyone on course and prevent panic.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Helmsman",
+                "Seasick Mate",
+                "Navigator"
+              ],
+              "clueSignals": [
+                "urgent commands",
+                "storm focus"
+              ]
+            },
+            {
+              "name": "Navigator",
+              "mandatory": false,
+              "prompt": "You can only draw rough direction clues to find shore.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Captain"
+              ],
+              "clueSignals": [
+                "drawing route",
+                "pointing horizon"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sushi-restaurant",
+          "name": "Sushi Restaurant",
+          "guesserPrompt": "{guesser}: _ _ night at a _ _ _ _",
+          "clueChecklist": [
+            "kitchen and service motions",
+            "chef pressure",
+            "date interaction"
+          ],
+          "roles": [
+            {
+              "name": "Sushi Cook",
+              "mandatory": true,
+              "prompt": "Prepare sushi and speak only gibberish plus mime.",
+              "communicationMode": "gibberish_only",
+              "interactionWith": [
+                "Head Chef"
+              ],
+              "clueSignals": [
+                "rolling sushi",
+                "kitchen prep"
+              ]
+            },
+            {
+              "name": "Head Chef",
+              "mandatory": true,
+              "prompt": "Correct cooks using only gibberish speech and gestures.",
+              "communicationMode": "gibberish_only",
+              "interactionWith": [
+                "Sushi Cook"
+              ],
+              "clueSignals": [
+                "chef authority",
+                "kitchen correction"
+              ]
+            },
+            {
+              "name": "Date Guest",
+              "mandatory": true,
+              "prompt": "You are on an anniversary date and love this food.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Date Planner"
+              ],
+              "clueSignals": [
+                "romantic behavior",
+                "food excitement"
+              ]
+            },
+            {
+              "name": "Date Planner",
+              "mandatory": false,
+              "prompt": "You brought your date here and want everything perfect.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Date Guest",
+                "Head Chef"
+              ],
+              "clueSignals": [
+                "ordering carefully",
+                "anniversary tone"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "haunted-museum-heist",
+          "name": "Haunted Museum Heist",
+          "guesserPrompt": "{guesser}: stopping an art theft in a haunted museum",
+          "clueChecklist": [
+            "museum patrol behavior",
+            "sneaking theft attempt",
+            "ghostly interruptions"
+          ],
+          "roles": [
+            {
+              "name": "Night Guard",
+              "mandatory": true,
+              "prompt": "Patrol rooms and question suspicious people.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Art Thief",
+                "Curator"
+              ],
+              "clueSignals": [
+                "flashlight checks",
+                "security stance"
+              ]
+            },
+            {
+              "name": "Ghost Statue",
+              "mandatory": true,
+              "prompt": "You only move when unwatched and cannot speak.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Art Thief"
+              ],
+              "clueSignals": [
+                "freeze-move pattern",
+                "spooky gestures"
+              ]
+            },
+            {
+              "name": "Blueprint Kid",
+              "mandatory": true,
+              "prompt": "You can only draw floor plans and alarm zones.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Night Guard"
+              ],
+              "clueSignals": [
+                "map sketches",
+                "alarm path markings"
+              ]
+            },
+            {
+              "name": "Art Thief",
+              "mandatory": false,
+              "prompt": "Try to steal the famous art without saying steal, museum, or painting.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Ghost Statue",
+                "Night Guard"
+              ],
+              "clueSignals": [
+                "sneaking",
+                "hiding object"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "space-station-oxygen-leak",
+          "name": "Space Station Oxygen Leak",
+          "guesserPrompt": "{guesser}: fixing an oxygen leak on a space station",
+          "clueChecklist": [
+            "breathing emergency",
+            "repair coordination",
+            "system diagrams"
+          ],
+          "roles": [
+            {
+              "name": "Chief Engineer",
+              "mandatory": true,
+              "prompt": "Direct emergency repairs and assign tasks quickly.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Systems Analyst",
+                "Pilot"
+              ],
+              "clueSignals": [
+                "repair gestures",
+                "urgent commands"
+              ]
+            },
+            {
+              "name": "Pilot",
+              "mandatory": true,
+              "prompt": "You are low on oxygen and can only mime distress.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Chief Engineer"
+              ],
+              "clueSignals": [
+                "gasping",
+                "weak movement"
+              ]
+            },
+            {
+              "name": "Systems Analyst",
+              "mandatory": true,
+              "prompt": "You can only draw broken air-system paths and pressure maps.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Chief Engineer"
+              ],
+              "clueSignals": [
+                "diagram drawing",
+                "leak location pointers"
+              ]
+            },
+            {
+              "name": "Maintenance Robot",
+              "mandatory": false,
+              "prompt": "Communicate by beeps while delivering tools.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Chief Engineer"
+              ],
+              "clueSignals": [
+                "robot beeps",
+                "tool handoff"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "wedding-cake-disaster",
+          "name": "Wedding Cake Disaster",
+          "guesserPrompt": "{guesser}: saving a wedding cake before the ceremony",
+          "clueChecklist": [
+            "broken cake repair",
+            "wedding urgency",
+            "kitchen teamwork"
+          ],
+          "roles": [
+            {
+              "name": "Head Baker",
+              "mandatory": true,
+              "prompt": "Lead emergency cake repair and direct helpers.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Silent Decorator",
+                "Recipe Scribe"
+              ],
+              "clueSignals": [
+                "mixing or stacking",
+                "urgent instructions"
+              ]
+            },
+            {
+              "name": "Silent Decorator",
+              "mandatory": true,
+              "prompt": "You can only mime frosting and decoration choices.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Head Baker"
+              ],
+              "clueSignals": [
+                "piping gestures",
+                "placing decorations"
+              ]
+            },
+            {
+              "name": "Recipe Scribe",
+              "mandatory": true,
+              "prompt": "You can only draw recipe fixes and layer plans.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Head Baker"
+              ],
+              "clueSignals": [
+                "recipe sketching",
+                "layer diagrams"
+              ]
+            },
+            {
+              "name": "Bride",
+              "mandatory": false,
+              "prompt": "You are panicking because the cake must be ready now.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Head Baker",
+                "Groom"
+              ],
+              "clueSignals": [
+                "wedding stress",
+                "time pressure"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "volcano-research-camp",
+          "name": "Volcano Research Camp",
+          "guesserPrompt": "{guesser}: escaping a volcano after warning signs",
+          "clueChecklist": [
+            "scientific monitoring",
+            "eruption danger",
+            "evacuation planning"
+          ],
+          "roles": [
+            {
+              "name": "Field Leader",
+              "mandatory": true,
+              "prompt": "Lead evacuation decisions and direct the team.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Seismologist",
+                "Injured Climber"
+              ],
+              "clueSignals": [
+                "evacuation orders",
+                "hazard urgency"
+              ]
+            },
+            {
+              "name": "Seismologist",
+              "mandatory": true,
+              "prompt": "You can only draw tremor charts and ash maps.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Field Leader"
+              ],
+              "clueSignals": [
+                "wave chart drawing",
+                "map warnings"
+              ]
+            },
+            {
+              "name": "Injured Climber",
+              "mandatory": true,
+              "prompt": "You are hurt and can only mime trying to move downhill.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Field Leader",
+                "Evacuation Driver"
+              ],
+              "clueSignals": [
+                "limping",
+                "heat avoidance"
+              ]
+            },
+            {
+              "name": "Drone Operator",
+              "mandatory": false,
+              "prompt": "Use buzzing sounds and gestures to report danger spots.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Field Leader",
+                "Seismologist"
+              ],
+              "clueSignals": [
+                "drone buzzing",
+                "scanning motions"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "movie-set-meltdown",
+          "name": "Movie Set Meltdown",
+          "guesserPrompt": "{guesser}: finishing a scene during a chaotic movie set",
+          "clueChecklist": [
+            "film production cues",
+            "director and actor tension",
+            "set problems and retries"
+          ],
+          "roles": [
+            {
+              "name": "Director",
+              "mandatory": true,
+              "prompt": "Direct everyone and keep the scene moving.",
+              "communicationMode": "talk_mime",
+              "interactionWith": [
+                "Stunt Actor",
+                "Storyboard Artist"
+              ],
+              "clueSignals": [
+                "calling action and cut",
+                "camera framing gestures"
+              ]
+            },
+            {
+              "name": "Stunt Actor",
+              "mandatory": true,
+              "prompt": "You can only mime repeated stunt failures.",
+              "communicationMode": "mime_only",
+              "interactionWith": [
+                "Director"
+              ],
+              "clueSignals": [
+                "fake falls",
+                "reset motions"
+              ]
+            },
+            {
+              "name": "Storyboard Artist",
+              "mandatory": true,
+              "prompt": "You can only draw shot plans and scene order.",
+              "communicationMode": "draw_only",
+              "interactionWith": [
+                "Director"
+              ],
+              "clueSignals": [
+                "frame sketches",
+                "scene arrows"
+              ]
+            },
+            {
+              "name": "Sound Operator",
+              "mandatory": false,
+              "prompt": "Use sound effects and mic checks, no normal dialogue.",
+              "communicationMode": "sound_only",
+              "interactionWith": [
+                "Director",
+                "Stunt Actor"
+              ],
+              "clueSignals": [
+                "audio checks",
+                "effect cues"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "rules": [
+    "Minimum players is 4 (1 guesser + 3 mandatory performer roles).",
+    "Exactly one guesser is chosen at random each round.",
+    "Selected situation must support player count with performers = players - 1 and mandatoryRoles <= performers <= totalRoles.",
+    "All mandatory roles are included before optional roles are sampled.",
+    "Player names are required, trimmed, and case-insensitively unique.",
+    "Role and guesser prompts may contain template tokens such as {player} and {guesser}.",
+    "All hidden content actions require explicit confirmation before reveal (role reveal, role re-check, and final answer reveal).",
+    "During live play, the guesser can say a guess out loud at any time, then reveal the answer to confirm win/loss.",
+    "During live play, each player may privately re-check only their own role.",
+    "Every situation must include at least one explicit role interaction and enough clue signals for the guesser to infer the setting."
+  ],
+  "qualityGates": [
+    "npm run build"
+  ],
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Define situation and role domain model",
+      "status": "done",
+      "dependsOn": [],
+      "description": "As a developer, I want a clear in-code model for situations and roles so round generation can enforce player-count rules reliably.",
+      "acceptanceCriteria": [
+        "Create structured situation objects with id, name, guesser prompt, clue checklist, and roles with mandatory flags.",
+        "Role schema includes communicationMode, interactionWith, and clueSignals.",
+        "Example: with 5 players and a situation containing 3 mandatory + 2 optional roles, the situation is valid because 4 performers can be assigned.",
+        "Negative case: with 4 players and a situation requiring 4 mandatory performer roles, the situation is rejected because only 3 performers are available.",
+        "Show a deterministic error message when no situation is compatible."
+      ],
+      "startedAt": "2026-03-03T20:39:48.946438+00:00",
+      "completedAt": "2026-03-03T22:51:07+00:00",
+      "updatedAt": "2026-03-03T22:51:07+00:00"
+    },
+    {
+      "id": "US-002",
+      "title": "Build setup flow for players and situation selection",
+      "status": "done",
+      "dependsOn": [
+        "US-001"
+      ],
+      "description": "As a host, I want to enter player names and choose a specific or random situation so I can start a valid round quickly.",
+      "acceptanceCriteria": [
+        "Provide input rows for player names with add/remove controls and enforce minimum 4 players.",
+        "Provide a situation selector with a Random option that chooses only compatible situations.",
+        "Display setup status including ready player count, minimum required, and max supported for selected situation.",
+        "Example: entering 4 unique names and choosing Random enables starting a round.",
+        "Negative case: attempting to start with duplicate names like 'Alex' and 'alex' shows a validation error and blocks start."
+      ],
+      "startedAt": "2026-03-03T22:12:34.399211+00:00",
+      "completedAt": "2026-03-03T22:33:16.615095+00:00",
+      "updatedAt": "2026-03-03T22:33:16.615095+00:00"
+    },
+    {
+      "id": "US-003",
+      "title": "Generate round assignments with one guesser",
+      "status": "in_progress",
+      "dependsOn": [
+        "US-001",
+        "US-002"
+      ],
+      "description": "As a player, I want fair random assignment of guesser and performer roles so each round feels different.",
+      "acceptanceCriteria": [
+        "Randomly choose exactly one guesser from the current players.",
+        "Assign all remaining players to role cards, always including mandatory roles and then optional roles as needed.",
+        "Render guesser and role prompt templates with token replacement.",
+        "Example: for 6 players, 1 guesser is selected and 5 performers receive roles where all mandatory roles appear exactly once.",
+        "Negative case: if no compatible situation exists, round creation fails with a clear user-facing error."
+      ],
+      "startedAt": "2026-03-03T22:33:19.194629+00:00",
+      "completedAt": null,
+      "updatedAt": "2026-03-03T22:33:19.194629+00:00"
+    },
+    {
+      "id": "US-004",
+      "title": "Implement private pass-and-reveal handoff with confirmation",
+      "status": "open",
+      "dependsOn": [
+        "US-003"
+      ],
+      "description": "As a participant, I want a protected reveal flow so only I can view my role before passing the device onward.",
+      "acceptanceCriteria": [
+        "Implement reveal stages per player: pass screen, identity confirmation, reveal request, and confirm reveal.",
+        "Role text remains hidden until the active player confirms reveal.",
+        "Provide Hide and Continue to advance to the next player until all cards are seen.",
+        "Example: Player 2 cannot see role text until pressing Confirm Reveal on their turn.",
+        "Negative case: canceling at confirmation keeps role text hidden."
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Support live phase with guess-anytime answer resolution",
+      "status": "open",
+      "dependsOn": [
+        "US-004"
+      ],
+      "description": "As the guesser, I want to say a guess out loud at any point and then reveal the answer so the game can resolve correctly.",
+      "acceptanceCriteria": [
+        "After the last player reveal, transition to live phase and show guesser identity.",
+        "Provide a control for the guesser to lock in a spoken guess and trigger answer reveal.",
+        "Require confirmation before revealing the true situation and computing win/loss.",
+        "Example: guesser says 'Vet Clinic', confirms reveal, and UI shows whether the guess is correct.",
+        "Negative case: if confirmation is not given, the actual situation remains hidden."
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Allow private role re-check during live play",
+      "status": "open",
+      "dependsOn": [
+        "US-004",
+        "US-005"
+      ],
+      "description": "As a performer, I want to privately re-open my own role during the scene if I forget details.",
+      "acceptanceCriteria": [
+        "Add a live-phase 'Show My Role Again' flow with pass and confirmation safeguards.",
+        "Re-check reveal requires explicit confirmation before showing role text.",
+        "Hide returns safely to live phase after re-check.",
+        "Example: Purple re-checks only Purple's card and returns to acting.",
+        "Negative case: no player can reveal another player's role through re-check flow."
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Seed catalog with the five original situations",
+      "status": "open",
+      "dependsOn": [
+        "US-001"
+      ],
+      "description": "As a host, I want the original five scenarios from the concept so the game preserves the intended experience.",
+      "acceptanceCriteria": [
+        "Include Animal Shelter, Vet Clinic, Pirate Treasure, Stormy Night At Sea, and Sushi Restaurant.",
+        "Each situation defines at least 3 mandatory performer roles and optional roles for larger groups.",
+        "Each includes role interactions and clue checklist entries.",
+        "Example: Animal Shelter includes injured dog and happy cat interacting with a caretaker.",
+        "Negative case: any situation with fewer than 3 mandatory roles is excluded."
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Add five generated situations with communication constraints",
+      "status": "open",
+      "dependsOn": [
+        "US-001",
+        "US-007"
+      ],
+      "description": "As a host, I want five extra creative scenarios that use draw-only, mime-only, and talk/mime roles plus other wild constraints.",
+      "acceptanceCriteria": [
+        "Include Haunted Museum Heist, Space Station Oxygen Leak, Wedding Cake Disaster, Volcano Research Camp, and Movie Set Meltdown.",
+        "Across these situations, include roles with draw_only, mime_only, talk_mime, and at least one of sound_only/silent/gibberish_only.",
+        "Each generated situation has at least one explicit role-to-role interaction and clue checklist supporting guesser inference from performance alone.",
+        "Example: in Space Station Oxygen Leak, one role draws system diagrams while another mimes oxygen distress and interacts with an engineer.",
+        "Negative case: reject a generated situation if the guess depends on saying hidden keywords instead of performable clues."
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Polish mobile usability and accessibility",
+      "status": "open",
+      "dependsOn": [
+        "US-002",
+        "US-004",
+        "US-005",
+        "US-006"
+      ],
+      "description": "As a party player, I want clear and accessible controls on a phone so pass-around flow is smooth in noisy environments.",
+      "acceptanceCriteria": [
+        "Use responsive single-column layout on small screens with readable typography and high contrast controls.",
+        "Ensure all actions are keyboard reachable and controls have labels.",
+        "Support long player names without overlapping controls.",
+        "Example: on a 390px-wide viewport, reveal and confirmation controls remain usable without horizontal scrolling.",
+        "Negative case: role text never flashes during screen transitions."
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Document local run and gameplay rules",
+      "status": "open",
+      "dependsOn": [
+        "US-005",
+        "US-006",
+        "US-007",
+        "US-008",
+        "US-009"
+      ],
+      "description": "As a maintainer, I want concise setup and gameplay docs so others can run and understand the game quickly.",
+      "acceptanceCriteria": [
+        "Update README with install/run steps and short gameplay flow.",
+        "Document minimum player rule, guess-at-any-time resolution, reveal confirmations, role re-check flow, and restart options.",
+        "List all 10 situations by name.",
+        "Example: README includes `npm install` and `npm run dev` plus a numbered how-to-play section with guess resolution.",
+        "Negative case: if docs omit any situation name or verification command, the story is not accepted."
+      ]
+    }
+  ]
+}

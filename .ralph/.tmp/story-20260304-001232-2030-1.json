@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "total": 10,
+  "remaining": 9,
+  "quality_gates": [
+    "npm run build"
+  ],
+  "id": "US-002",
+  "title": "Build setup flow for players and situation selection"
+}

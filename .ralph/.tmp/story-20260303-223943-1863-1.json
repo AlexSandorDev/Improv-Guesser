@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "total": 10,
+  "remaining": 10,
+  "quality_gates": [
+    "npm run build"
+  ],
+  "id": "US-001",
+  "title": "Define situation and role domain model"
+}

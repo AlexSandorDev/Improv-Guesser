@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "total": 10,
+  "remaining": 8,
+  "quality_gates": [
+    "npm run build"
+  ],
+  "id": "US-003",
+  "title": "Generate round assignments with one guesser"
+}
