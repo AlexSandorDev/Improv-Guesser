@@ -13,9 +13,8 @@ function GameLayout() {
   const [players, setPlayers] = useState([]);
   const [round, setRound] = useState(null);
   const [roundNumber, setRoundNumber] = useState(0);
-  const [lives, setLives] = useState(INITIAL_LIVES);
   const [roundOver, setRoundOver] = useState(false);
-  const [history, setHistory] = useState([]);
+  const [attempts, setAttempts] = useState([]);
   const [revealedLiveRoles, setRevealedLiveRoles] = useState({});
 
   function startGame(nextPlayers) {
@@ -24,9 +23,8 @@ function GameLayout() {
       setPlayers(nextPlayers);
       setRound(generatedRound);
       setRoundNumber(1);
-      setLives(INITIAL_LIVES);
       setRoundOver(false);
-      setHistory([]);
+      setAttempts([]);
       setRevealedLiveRoles({});
       return null;
     } catch (roundError) {
@@ -36,22 +34,18 @@ function GameLayout() {
 
   function submitGuess(guessText) {
     const correct = isAnswerCorrect(guessText, round.matchAnswers);
+    const nextAttempts = [...attempts, { text: guessText, correct }];
+    setAttempts(nextAttempts);
 
     if (correct) {
-      setHistory((prev) => [...prev, { roundNumber, guesser: round.guesser, answer: guessText, correct: true }]);
       setRoundOver(true);
       return true;
     }
 
-    const remainingLives = lives - 1;
-    if (remainingLives <= 0) {
-      setLives(0);
-      setHistory((prev) => [...prev, { roundNumber, guesser: round.guesser, answer: guessText, correct: false }]);
+    const wrongCount = nextAttempts.filter((attempt) => !attempt.correct).length;
+    if (wrongCount >= INITIAL_LIVES) {
       setRoundOver(true);
-      return false;
     }
-
-    setLives(remainingLives);
     return false;
   }
 
@@ -60,8 +54,8 @@ function GameLayout() {
     const nextRound = createRound(players, "random", Math.random, SITUATIONS, nextIndex);
     setRound(nextRound);
     setRoundNumber((prev) => prev + 1);
-    setLives(INITIAL_LIVES);
     setRoundOver(false);
+    setAttempts([]);
     setRevealedLiveRoles({});
   }
 
@@ -69,9 +63,8 @@ function GameLayout() {
     setPlayers([]);
     setRound(null);
     setRoundNumber(0);
-    setLives(INITIAL_LIVES);
     setRoundOver(false);
-    setHistory([]);
+    setAttempts([]);
     setRevealedLiveRoles({});
   }
 
@@ -85,9 +78,8 @@ function GameLayout() {
         players,
         round,
         roundNumber,
-        lives,
         roundOver,
-        history,
+        attempts,
         revealedLiveRoles,
         startGame,
         submitGuess,

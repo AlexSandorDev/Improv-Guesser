@@ -5,6 +5,21 @@
   --bs-primary-rgb: 232, 93, 4;
 }
 
+/* Bootstrap 5.3's compiled .btn-primary hardcodes its own --bs-btn-* tokens rather than
+   reading the root --bs-primary variable, so the root override above doesn't reach
+   buttons on its own. Retarget those tokens explicitly. (.text-bg-primary badges already
+   read --bs-primary-rgb directly and need no override.) */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: color-mix(in srgb, var(--bs-primary) 85%, black);
+  --bs-btn-hover-border-color: color-mix(in srgb, var(--bs-primary) 80%, black);
+  --bs-btn-active-bg: color-mix(in srgb, var(--bs-primary) 80%, black);
+  --bs-btn-active-border-color: color-mix(in srgb, var(--bs-primary) 75%, black);
+  --bs-btn-disabled-bg: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+}
+
 html {
   font-size: 18px;
 }

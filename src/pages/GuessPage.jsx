@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate, useOutletContext } from "react-router-dom";
-import LivesTracker from "../components/LivesTracker";
-import AnswerHistoryList from "../components/AnswerHistoryList";
+import GuessAttempts from "../components/GuessAttempts";
 
 function GuessPage() {
-  const { round, roundNumber, lives, roundOver, history, submitGuess, startNewRound, backToSetup } =
+  const { round, roundNumber, roundOver, attempts, submitGuess, startNewRound, backToSetup } =
     useOutletContext();
   const navigate = useNavigate();
   const [guessInput, setGuessInput] = useState("");
-  const [feedback, setFeedback] = useState(null);
+  const [wasCorrect, setWasCorrect] = useState(false);
 
   if (!round) {
     return <Navigate to="/" replace />;
@@ -22,13 +21,13 @@ function GuessPage() {
     }
 
     const correct = submitGuess(trimmed);
-    setFeedback(correct ? "correct" : "wrong");
+    setWasCorrect(correct);
     setGuessInput("");
   }
 
   function handleNewRound() {
     startNewRound();
-    setFeedback(null);
+    setWasCorrect(false);
     navigate("/reveal");
   }
 
@@ -39,16 +38,12 @@ function GuessPage() {
 
   return (
     <section className="d-grid gap-3 py-3">
-      <div className="d-flex align-items-center justify-content-between">
-        <p className="fs-5 fw-bold mb-0">Round {roundNumber}</p>
-        <LivesTracker lives={lives} />
-      </div>
+      <p className="fs-5 fw-bold mb-0">Round {roundNumber}</p>
 
-      <AnswerHistoryList history={history} />
+      <GuessAttempts attempts={attempts} />
 
       {!roundOver && (
         <form onSubmit={handleSubmit} className="d-grid gap-3">
-          {feedback === "wrong" && <p className="alert alert-danger fs-5 mb-0">Not quite — try again.</p>}
           <input
             value={guessInput}
             onChange={(event) => setGuessInput(event.target.value)}
@@ -66,7 +61,7 @@ function GuessPage() {
       {roundOver && (
         <div className="card border-success-subtle bg-success-subtle">
           <div className="card-body text-center d-grid gap-3">
-            <p className="fs-5 fw-bold mb-0">{feedback === "correct" ? "Correct!" : "Out of lives!"}</p>
+            <p className="fs-5 fw-bold mb-0">{wasCorrect ? "Correct!" : "Out of lives!"}</p>
             <p className="text-body-secondary mb-0">Answer</p>
             <h3 className="mb-0">{round.solution}</h3>
           </div>

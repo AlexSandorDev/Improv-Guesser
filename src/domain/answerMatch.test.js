@@ -17,6 +17,11 @@ test("levenshteinDistance counts edits between two strings", () => {
   assert.equal(levenshteinDistance("player 1", "player 1"), 0);
 });
 
+test("levenshteinDistance counts an adjacent-letter transposition as a single edit", () => {
+  assert.equal(levenshteinDistance("stromy", "stormy"), 1);
+  assert.equal(levenshteinDistance("plyaer", "player"), 1);
+});
+
 test("similarityRatio returns 1 for identical strings and 0 for fully different strings", () => {
   assert.equal(similarityRatio("player 1", "player 1"), 1);
   assert.equal(similarityRatio("abc", "xyz"), 0);
@@ -32,6 +37,16 @@ test("isAnswerCorrect accepts a single dropped-letter typo in one word", () => {
 
 test("isAnswerCorrect accepts a typo inside a longer phrase", () => {
   assert.equal(isAnswerCorrect("where are thay", ["where are they"]), true);
+});
+
+test("isAnswerCorrect accepts an adjacent-letter-swap typo inside a longer phrase", () => {
+  assert.equal(
+    isAnswerCorrect(
+      "sam is tryng to get home throug a stromy nigt at sea",
+      ["Sam is trying to get home through a stormy night at sea."]
+    ),
+    true
+  );
 });
 
 test("isAnswerCorrect accepts a rephrased guess with extra filler words", () => {

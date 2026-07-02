@@ -8,6 +8,10 @@ export function normalizeAnswerText(text) {
     .replace(/\s+/g, " ");
 }
 
+// Restricted edit distance (Levenshtein plus adjacent-transposition as a single edit,
+// a.k.a. Optimal String Alignment). Plain Levenshtein counts a swapped pair of adjacent
+// letters — the most common typo pattern ("stromy" for "stormy", "form" for "from") — as
+// 2 edits, which drags short words below WORD_MATCH_THRESHOLD and wrongly rejects the typo.
 export function levenshteinDistance(a, b) {
   const rows = a.length + 1;
   const cols = b.length + 1;
@@ -28,6 +32,9 @@ export function levenshteinDistance(a, b) {
         distances[i][j - 1] + 1,
         distances[i - 1][j - 1] + cost
       );
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        distances[i][j] = Math.min(distances[i][j], distances[i - 2][j - 2] + 1);
+      }
     }
   }
 
