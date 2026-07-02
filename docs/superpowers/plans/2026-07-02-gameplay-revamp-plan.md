@@ -32,6 +32,13 @@
 
 ## Task 1: Add react-router-dom dependency
 
+**Amendment (during execution):** the initial install pulled v7.18.1, which requires
+Node >=20; this environment runs Node 18.18.2. Corrected to `react-router-dom@6.30.4`
+(requires only Node >=14) — no functional impact, since the app only uses the
+declarative-mode API (`BrowserRouter`, `Routes`, `Route`, `Outlet`, `useOutletContext`,
+`useNavigate`, `Navigate`, `Link`), present identically in v6. All later tasks should
+assume v6 is installed.
+
 **Files:**
 - Modify: `package.json`
 - Modify: `package-lock.json` (via `npm install`)
