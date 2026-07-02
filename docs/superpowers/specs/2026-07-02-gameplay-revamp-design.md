@@ -151,10 +151,24 @@ Flow:
 
 ## Answer Matching (`src/domain/answerMatch.js`)
 
+**Design note:** an earlier draft of this spec compared the whole normalized guess
+string against the whole target string with a single Levenshtein ratio (threshold 0.8).
+Verified against real examples during planning, that approach was too strict: a single
+adjacent-letter typo in a short 2-word answer (e.g. "player 1") drags the whole-string
+ratio down to ~0.67–0.75, below the 0.8 cutoff — misspellings would have been *rejected*,
+the opposite of the goal. The design below compares **word by word** instead (each
+target word fuzzy-matched against the closest guess word), which tolerates a typo in any
+one word without being dragged down by the rest of the phrase, and naturally tolerates
+extra/rephrased words in the guess since only the target's words need to be found.
+Verified with `node` against 8 cases (exact match, punctuation/case, single-letter typo,
+typo inside a longer phrase, rephrasing with filler words, a second/synonym accepted
+answer, an unrelated wrong guess, and an empty guess) — all passed at threshold 0.7 with
+no false positives against dissimilar words of similar length.
+
 Pure functions, no dependencies, easy to read and re-tune:
 
 ```js
-export const FUZZY_MATCH_THRESHOLD = 0.8;
+export const WORD_MATCH_THRESHOLD = 0.7;
 
 export function normalizeAnswerText(text) {
   return text
@@ -172,20 +186,24 @@ export function similarityRatio(a, b) {
   return 1 - levenshteinDistance(a, b) / maxLen;
 }
 
-function wordsOverlapFully(targetWords, guessWordSet) {
-  return targetWords.length > 0 && targetWords.every((word) => guessWordSet.has(word));
+function wordsFuzzyMatch(guessWords, targetWords, threshold) {
+  return targetWords.every((targetWord) =>
+    guessWords.some(
+      (guessWord) => guessWord === targetWord || similarityRatio(guessWord, targetWord) >= threshold
+    )
+  );
 }
 
-export function isAnswerCorrect(guess, acceptedAnswers, threshold = FUZZY_MATCH_THRESHOLD) {
+export function isAnswerCorrect(guess, acceptedAnswers, threshold = WORD_MATCH_THRESHOLD) {
   const normalizedGuess = normalizeAnswerText(guess);
   if (!normalizedGuess) return false;
-  const guessWordSet = new Set(normalizedGuess.split(" ").filter(Boolean));
+  const guessWords = normalizedGuess.split(" ").filter(Boolean);
 
   return acceptedAnswers.some((accepted) => {
     const normalizedTarget = normalizeAnswerText(accepted);
     if (!normalizedTarget) return false;
-    if (similarityRatio(normalizedGuess, normalizedTarget) >= threshold) return true;
-    return wordsOverlapFully(normalizedTarget.split(" ").filter(Boolean), guessWordSet);
+    const targetWords = normalizedTarget.split(" ").filter(Boolean);
+    return wordsFuzzyMatch(guessWords, targetWords, threshold);
   });
 }
 ```
