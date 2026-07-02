@@ -1,35 +1,22 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap");
 
 :root {
-  --bg-a: #fff7e6;
-  --bg-b: #dff7ff;
-  --surface: #ffffff;
-  --surface-strong: #f4faff;
-  --ink: #1b2a41;
-  --ink-soft: #445166;
-  --accent: #e85d04;
-  --accent-2: #0b8f8c;
-  --danger: #b91c1c;
-  --border: #d6e3ef;
-  --shadow: 0 18px 48px rgba(25, 53, 84, 0.14);
-  --radius: 18px;
+  --bs-primary: #e85d04;
+  --bs-primary-rgb: 232, 93, 4;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+html {
+  font-size: 18px;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   font-family: "Outfit", "Segoe UI", sans-serif;
-  color: var(--ink);
   background:
     radial-gradient(circle at 12% 12%, #ffd9c2 0%, transparent 25%),
     radial-gradient(circle at 80% 20%, #c7eef6 0%, transparent 26%),
-    linear-gradient(130deg, var(--bg-a), var(--bg-b));
+    linear-gradient(130deg, #fff7e6, #dff7ff);
 }
 
 #root {
@@ -38,292 +25,10 @@ body {
 
 .page-shell {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-}
-
-.game-card {
-  width: min(760px, 100%);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  box-shadow: var(--shadow);
-  padding: 24px;
-  animation: lift-in 0.35s ease-out both;
+  padding-bottom: 2rem;
 }
 
 .game-header h1 {
   font-family: "Space Grotesk", "Trebuchet MS", sans-serif;
-  margin: 0;
-  line-height: 1.1;
   letter-spacing: -0.02em;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-  color: var(--accent-2);
-  font-size: 0.75rem;
-}
-
-.stack {
-  display: grid;
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.muted {
-  margin: 0;
-  color: var(--ink-soft);
-}
-
-.label-row {
-  display: grid;
-  gap: 8px;
-}
-
-.label-row label {
-  font-weight: 600;
-}
-
-select,
-input {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
-  font: inherit;
-  background: #fff;
-}
-
-select:focus,
-input:focus {
-  outline: 2px solid color-mix(in srgb, var(--accent) 45%, white);
-  border-color: var(--accent);
-}
-
-.players-block {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
-  background: var(--surface-strong);
-  display: grid;
-  gap: 10px;
-}
-
-.players-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.players-head p {
-  margin: 0;
-  font-weight: 700;
-}
-
-.role-review-list {
-  gap: 12px;
-}
-
-.role-review-item {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fff;
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-}
-
-.role-review-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.role-review-player {
-  margin: 0;
-  font-weight: 700;
-}
-
-.role-review-player-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid #9bc8f4;
-  background: #eef6ff;
-  color: #1f5ea7;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.role-review-details {
-  display: grid;
-  gap: 8px;
-}
-
-.role-review-details h3 {
-  margin: 0;
-}
-
-.player-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-}
-
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
-}
-
-.status-grid p {
-  margin: 0;
-  background: #f7fbff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.situation-preview {
-  border-left: 4px solid var(--accent-2);
-  background: #f4fcfb;
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-
-.situation-preview p {
-  margin: 2px 0;
-}
-
-.preview-title {
-  font-weight: 700;
-}
-
-.panel {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface-strong);
-  padding: 20px;
-  display: grid;
-  gap: 12px;
-  text-align: center;
-}
-
-.panel.reveal {
-  background: #fff8f0;
-  border-color: #f2d8be;
-}
-
-.panel.answer {
-  background: #eefaf3;
-  border-color: #cbe7d5;
-}
-
-.panel h2,
-.panel h3 {
-  margin: 0;
-}
-
-.role-tag {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent-2);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.prompt {
-  margin: 0;
-  font-size: 1.05rem;
-  line-height: 1.5;
-}
-
-.btn {
-  border: 0;
-  border-radius: 12px;
-  padding: 11px 14px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.14s ease, opacity 0.14s ease, box-shadow 0.14s ease;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn.primary {
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), #f08b24);
-  box-shadow: 0 10px 24px rgba(232, 93, 4, 0.25);
-}
-
-.btn.ghost {
-  color: var(--ink);
-  background: #ebf3fb;
-}
-
-.btn.danger {
-  color: #fff;
-  background: var(--danger);
-}
-
-.error {
-  margin: 0;
-  color: var(--danger);
-  font-weight: 700;
-}
-
-@keyframes lift-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 640px) {
-  .game-card {
-    padding: 18px;
-    border-radius: 16px;
-  }
-
-  .player-row {
-    grid-template-columns: 1fr;
-  }
-
-  .players-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .role-review-top {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }

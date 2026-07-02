@@ -1,271 +1,124 @@
-import { useMemo, useState } from "react";
-import {
-  createRound,
-  hasUniquePlayerNames,
-  MIN_PLAYERS,
-  normalizePlayerNames,
-  SITUATIONS,
-} from "./domain/situationModel";
+import { useState } from "react";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { isAnswerCorrect } from "./domain/answerMatch";
+import { createRound, getNextGuesserIndex, SITUATIONS } from "./domain/situationModel";
+import GuessPage from "./pages/GuessPage";
+import RevealPage from "./pages/RevealPage";
+import RolesPage from "./pages/RolesPage";
+import SetupPage from "./pages/SetupPage";
 
-function App() {
-  const [playerInputs, setPlayerInputs] = useState(["", "", "", ""]);
-  const [error, setError] = useState("");
+const INITIAL_LIVES = 6;
+
+function GameLayout() {
+  const [players, setPlayers] = useState([]);
   const [round, setRound] = useState(null);
-  const [phase, setPhase] = useState("setup");
-  const [turnIndex, setTurnIndex] = useState(0);
-  const [turnStage, setTurnStage] = useState("pass");
-  const [showSolution, setShowSolution] = useState(false);
+  const [roundNumber, setRoundNumber] = useState(0);
+  const [lives, setLives] = useState(INITIAL_LIVES);
+  const [roundOver, setRoundOver] = useState(false);
+  const [history, setHistory] = useState([]);
   const [revealedLiveRoles, setRevealedLiveRoles] = useState({});
 
-  const currentMaxPlayers = useMemo(
-    () => Math.max(...SITUATIONS.map((situation) => situation.roles.length + 1)),
-    []
-  );
-
-  const normalizedPlayers = useMemo(() => normalizePlayerNames(playerInputs), [playerInputs]);
-  const normalizedPlayerCount = normalizedPlayers.length;
-
-  function updatePlayerName(index, name) {
-    setPlayerInputs((prev) => {
-      const next = [...prev];
-      next[index] = name;
-      return next;
-    });
-    setError("");
-  }
-
-  function addPlayerField() {
-    setPlayerInputs((prev) => [...prev, ""]);
-    setError("");
-  }
-
-  function removePlayerField(index) {
-    setPlayerInputs((prev) => {
-      if (prev.length <= MIN_PLAYERS) {
-        return prev;
-      }
-      return prev.filter((_, i) => i !== index);
-    });
-    setError("");
-  }
-
-  function startRound(playersOverride = null) {
-    const players = playersOverride ?? normalizedPlayers;
-
-    if (players.length < MIN_PLAYERS) {
-      setError(`Minimum ${MIN_PLAYERS} players required.`);
-      return;
-    }
-
-    if (!hasUniquePlayerNames(players)) {
-      setError("Player names must be unique (case-insensitive).");
-      return;
-    }
-
+  function startGame(nextPlayers) {
     try {
-      const generatedRound = createRound(players, "random");
+      const generatedRound = createRound(nextPlayers, "random");
+      setPlayers(nextPlayers);
       setRound(generatedRound);
-      setError("");
-      setPhase("reveal");
-      setTurnIndex(0);
-      setTurnStage("pass");
-      setShowSolution(false);
+      setRoundNumber(1);
+      setLives(INITIAL_LIVES);
+      setRoundOver(false);
+      setHistory([]);
       setRevealedLiveRoles({});
+      return null;
     } catch (roundError) {
-      setError(roundError.message);
+      return roundError.message;
     }
   }
 
-  function moveToNextPlayer() {
-    if (!round) {
-      return;
+  function submitGuess(guessText) {
+    const correct = isAnswerCorrect(guessText, round.matchAnswers);
+
+    if (correct) {
+      setHistory((prev) => [...prev, { roundNumber, guesser: round.guesser, answer: guessText, correct: true }]);
+      setRoundOver(true);
+      return true;
     }
 
-    if (turnIndex + 1 >= revealOrder.length) {
-      setPhase("live");
-      setShowSolution(false);
-      return;
+    const remainingLives = lives - 1;
+    if (remainingLives <= 0) {
+      setLives(0);
+      setHistory((prev) => [...prev, { roundNumber, guesser: round.guesser, answer: guessText, correct: false }]);
+      setRoundOver(true);
+      return false;
     }
 
-    setTurnIndex((prev) => prev + 1);
-    setTurnStage("pass");
+    setLives(remainingLives);
+    return false;
+  }
+
+  function startNewRound() {
+    const nextIndex = getNextGuesserIndex(round.guesserIndex, players.length);
+    const nextRound = createRound(players, "random", Math.random, SITUATIONS, nextIndex);
+    setRound(nextRound);
+    setRoundNumber((prev) => prev + 1);
+    setLives(INITIAL_LIVES);
+    setRoundOver(false);
+    setRevealedLiveRoles({});
   }
 
   function backToSetup() {
-    setPhase("setup");
+    setPlayers([]);
     setRound(null);
-    setTurnIndex(0);
-    setTurnStage("pass");
-    setShowSolution(false);
+    setRoundNumber(0);
+    setLives(INITIAL_LIVES);
+    setRoundOver(false);
+    setHistory([]);
     setRevealedLiveRoles({});
   }
 
   function toggleLiveRole(player) {
-    setRevealedLiveRoles((prev) => ({
-      ...prev,
-      [player]: !prev[player],
-    }));
+    setRevealedLiveRoles((prev) => ({ ...prev, [player]: !prev[player] }));
   }
 
-  const revealOrder = useMemo(() => {
-    if (!round) {
-      return [];
-    }
-
-    return [...round.players.filter((player) => player !== round.guesser), round.guesser];
-  }, [round]);
-
-  const currentPlayer = revealOrder[turnIndex] ?? "";
-  const currentCard = round ? round.cards[currentPlayer] : null;
-
   return (
-    <main className="page-shell">
-        <header className="game-header">
+    <Outlet
+      context={{
+        players,
+        round,
+        roundNumber,
+        lives,
+        roundOver,
+        history,
+        revealedLiveRoles,
+        startGame,
+        submitGuess,
+        startNewRound,
+        backToSetup,
+        toggleLiveRole,
+      }}
+    />
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <main className="page-shell">
+        <header className="game-header text-center py-3">
           <h1>Improv Guesser</h1>
         </header>
-
-        {phase === "setup" && (
-          <section className="stack">
-            <p className="muted">
-              Add player names, then pass one phone around to reveal each private role.
-            </p>
-
-            <div className="players-block">
-              <div className="players-head">
-                <p>Players</p>
-                <button type="button" onClick={addPlayerField} className="btn ghost">
-                  + Add Player
-                </button>
-              </div>
-
-              {playerInputs.map((name, index) => (
-                <div key={`player-${index}`} className="player-row">
-                  <input
-                    value={name}
-                    onChange={(event) => updatePlayerName(index, event.target.value)}
-                    placeholder={`Player ${index + 1}`}
-                    autoComplete="off"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removePlayerField(index)}
-                    disabled={playerInputs.length <= MIN_PLAYERS}
-                    className="btn danger"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {error && <p className="error">{error}</p>}
-
-            <button
-              type="button"
-              onClick={() => startRound()}
-              className="btn primary"
-              disabled={normalizedPlayerCount < MIN_PLAYERS}
-            >
-              Start Game
-            </button>
-          </section>
-        )}
-
-        {phase === "reveal" && round && currentCard && (
-          <section className="stack">
-            {turnStage === "pass" && (
-              <div className="panel">
-                <h2>Hand the phone to {currentPlayer}</h2>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={() => setTurnStage("revealed")}
-                >
-                  Reveal Role
-                </button>
-              </div>
-            )}
-
-            {turnStage === "revealed" && (
-              <div className="panel reveal">
-                <p className="role-tag">{currentCard.rules}</p>
-                <h2>{currentCard.title}</h2>
-                <p className="prompt">{currentCard.prompt}</p>
-                <button type="button" className="btn primary" onClick={moveToNextPlayer}>
-                  Hide Role and Continue
-                </button>
-              </div>
-            )}
-
-            <button type="button" className="btn ghost" onClick={backToSetup}>
-              Cancel Round
-            </button>
-          </section>
-        )}
-
-        {phase === "live" && round && (
-          <section className="stack">
-            <div className="players-block role-review-list">
-              <div className="players-head">
-                <p>All Player Roles</p>
-              </div>
-              {round.players.map((player) => {
-                const card = round.cards[player];
-                const isRevealed = Boolean(revealedLiveRoles[player]);
-
-                return (
-                  <div key={`live-role-${player}`} className="role-review-item">
-                    <div className="role-review-top">
-                      <div className="role-review-player-row">
-                        <p className="role-review-player">{player}</p>
-                        {player === round.guesser && <span className="role-badge">Guesser</span>}
-                      </div>
-                      <button
-                        type="button"
-                        className="btn ghost"
-                        onClick={() => toggleLiveRole(player)}
-                      >
-                        {isRevealed ? "Hide Role" : "Reveal Role"}
-                      </button>
-                    </div>
-
-                    {isRevealed && (
-                      <div className="role-review-details">
-                        <p className="role-tag">{card.rules}</p>
-                        <h3>{card.title}</h3>
-                        <p className="prompt">{card.prompt}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => setShowSolution((prev) => !prev)}
-            >
-              {showSolution ? "Hide Situation Answer" : "Reveal Situation Answer"}
-            </button>
-
-            {showSolution && (
-              <div className="panel answer">
-                <p className="muted">Answer</p>
-                <h3>{round.solution}</h3>
-              </div>
-            )}
-
-            <button type="button" className="btn primary" onClick={() => startRound(round.players)}>
-              New Round
-            </button>
-
-            <button type="button" className="btn ghost" onClick={backToSetup}>
-              Back To Setup
-            </button>
-          </section>
-        )}
-    </main>
+        <div className="container">
+          <Routes>
+            <Route element={<GameLayout />}>
+              <Route path="/" element={<SetupPage />} />
+              <Route path="/reveal" element={<RevealPage />} />
+              <Route path="/guess" element={<GuessPage />} />
+              <Route path="/roles" element={<RolesPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </div>
+      </main>
+    </BrowserRouter>
   );
 }
 
