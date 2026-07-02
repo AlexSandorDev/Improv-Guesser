@@ -7,5 +7,5 @@
 - `npm run dev`
 
 ## Verify
-- `node --test src/domain/situationModel.test.js`
+- `node --test src/domain/*.test.js`
 - `npm run build`
