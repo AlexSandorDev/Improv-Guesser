@@ -70,6 +70,10 @@ function normalizeSituation(situation) {
     );
   }
 
+  if (situation.acceptedAnswers != null) {
+    normalized.acceptedAnswers = [...situation.acceptedAnswers];
+  }
+
   return normalized;
 }
 
@@ -85,6 +89,10 @@ function validateSituation(situation, situationIndex) {
   assertNonEmptyString(situation.guesserPrompt, "guesserPrompt", context);
   assertNonEmptyString(situation.solutionPrompt, "solutionPrompt", context);
   assertStringArray(situation.clueChecklist, "clueChecklist", context);
+
+  if (situation.acceptedAnswers != null) {
+    assertStringArray(situation.acceptedAnswers, "acceptedAnswers", context);
+  }
 
   if (!Array.isArray(situation.roles) || situation.roles.length === 0) {
     throw new Error(`${context}: "roles" must be a non-empty array.`);

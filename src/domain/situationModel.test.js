@@ -191,3 +191,64 @@ test("createRound falls back to solutionPrompt alone when acceptedAnswers is abs
 
   assert.deepEqual(round.matchAnswers, [round.solution]);
 });
+
+test("parseSituationsMarkdown accepts a situation with acceptedAnswers", () => {
+  const markdown = [
+    "```json",
+    "{",
+    '  "id": "with-answers",',
+    '  "name": "With Answers",',
+    '  "guesserPrompt": "test prompt",',
+    '  "solutionPrompt": "the answer",',
+    '  "acceptedAnswers": ["the answer", "an answer"],',
+    '  "clueChecklist": ["clue one"],',
+    '  "roles": [',
+    '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
+    "  ]",
+    "}",
+    "```",
+  ].join("\n");
+
+  const [situation] = parseSituationsMarkdown(markdown);
+  assert.deepEqual(situation.acceptedAnswers, ["the answer", "an answer"]);
+});
+
+test("parseSituationsMarkdown omits acceptedAnswers when not provided", () => {
+  const markdown = [
+    "```json",
+    "{",
+    '  "id": "without-answers",',
+    '  "name": "Without Answers",',
+    '  "guesserPrompt": "test prompt",',
+    '  "solutionPrompt": "the answer",',
+    '  "clueChecklist": ["clue one"],',
+    '  "roles": [',
+    '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
+    "  ]",
+    "}",
+    "```",
+  ].join("\n");
+
+  const [situation] = parseSituationsMarkdown(markdown);
+  assert.equal("acceptedAnswers" in situation, false);
+});
+
+test("parseSituationsMarkdown rejects a non-array acceptedAnswers", () => {
+  const markdown = [
+    "```json",
+    "{",
+    '  "id": "bad-answers",',
+    '  "name": "Bad Answers",',
+    '  "guesserPrompt": "test prompt",',
+    '  "solutionPrompt": "the answer",',
+    '  "acceptedAnswers": "the answer",',
+    '  "clueChecklist": ["clue one"],',
+    '  "roles": [',
+    '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
+    "  ]",
+    "}",
+    "```",
+  ].join("\n");
+
+  assert.throws(() => parseSituationsMarkdown(markdown), /acceptedAnswers/);
+});
