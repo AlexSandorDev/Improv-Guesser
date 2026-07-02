@@ -32,6 +32,10 @@ export function hasUniquePlayerNames(playerNames) {
   return new Set(normalizedNames).size === normalizedNames.length;
 }
 
+export function getNextGuesserIndex(currentIndex, playerCount) {
+  return (currentIndex + 1) % playerCount;
+}
+
 function fillPrompt(template, values) {
   return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
 }
@@ -70,7 +74,8 @@ export function createRound(
   players,
   selectedSituationId,
   random = Math.random,
-  situations = SITUATIONS
+  situations = SITUATIONS,
+  forcedGuesserIndex = null
 ) {
   const candidateSituations =
     selectedSituationId === "random"
@@ -84,7 +89,8 @@ export function createRound(
   }
 
   const situation = possibleSituations[Math.floor(random() * possibleSituations.length)];
-  const guesserIndex = Math.floor(random() * players.length);
+  const guesserIndex =
+    typeof forcedGuesserIndex === "number" ? forcedGuesserIndex : Math.floor(random() * players.length);
   const guesser = players[guesserIndex];
   const performers = players.filter((_, index) => index !== guesserIndex);
 
@@ -119,11 +125,19 @@ export function createRound(
     };
   });
 
+  const solution = fillPrompt(situation.solutionPrompt ?? situation.name, promptValues);
+  const acceptedTemplated = (situation.acceptedAnswers ?? []).map((template) =>
+    fillPrompt(template, promptValues)
+  );
+  const matchAnswers = [...new Set([solution, ...acceptedTemplated])];
+
   return {
     situation,
-    solution: fillPrompt(situation.solutionPrompt ?? situation.name, promptValues),
+    solution,
     players,
     guesser,
+    guesserIndex,
     cards,
+    matchAnswers,
   };
 }

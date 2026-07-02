@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   createRound,
+  getNextGuesserIndex,
   getNoCompatibleSituationError,
   hasUniquePlayerNames,
   SITUATIONS,
@@ -148,4 +149,45 @@ test("situation markdown is synced to generated situations", () => {
   const parsedSituations = parseSituationsMarkdown(markdown);
 
   assert.deepEqual(SITUATIONS, parsedSituations);
+});
+
+test("getNextGuesserIndex wraps around to 0 after the last player", () => {
+  assert.equal(getNextGuesserIndex(0, 4), 1);
+  assert.equal(getNextGuesserIndex(3, 4), 0);
+});
+
+test("createRound uses forcedGuesserIndex instead of picking randomly", () => {
+  const players = ["Alex", "Sam", "Jo", "Kai"];
+  const round = createRound(players, tokenTemplateSituation.id, () => 0.99, [tokenTemplateSituation], 2);
+
+  assert.equal(round.guesser, "Jo");
+  assert.equal(round.guesserIndex, 2);
+});
+
+const situationWithAcceptedAnswers = {
+  id: "with-accepted-answers",
+  name: "With Accepted Answers",
+  guesserPrompt: "{guesser} leads the scene",
+  solutionPrompt: "{focusPlayer} solved it",
+  acceptedAnswers: ["{focusPlayer} solved it", "case closed"],
+  clueChecklist: ["clue one"],
+  roles: [
+    { ...baseRole, name: "Role One", mandatory: true, prompt: "{player} plays along" },
+    { ...baseRole, name: "Role Two", mandatory: true, prompt: "{player} plays along" },
+    { ...baseRole, name: "Role Three", mandatory: true, prompt: "{player} plays along" },
+  ],
+};
+
+test("createRound builds matchAnswers from solutionPrompt plus deduplicated acceptedAnswers", () => {
+  const players = ["Alex", "Sam", "Jo", "Kai"];
+  const round = createRound(players, situationWithAcceptedAnswers.id, () => 0, [situationWithAcceptedAnswers]);
+
+  assert.deepEqual(round.matchAnswers, [round.solution, "case closed"]);
+});
+
+test("createRound falls back to solutionPrompt alone when acceptedAnswers is absent", () => {
+  const players = ["Alex", "Sam", "Jo", "Kai"];
+  const round = createRound(players, tokenTemplateSituation.id, () => 0, [tokenTemplateSituation]);
+
+  assert.deepEqual(round.matchAnswers, [round.solution]);
 });
