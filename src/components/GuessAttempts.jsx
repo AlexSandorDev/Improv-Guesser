@@ -10,7 +10,7 @@ function GuessAttempts({ attempts, maxAttempts = 6 }) {
           <div
             key={index}
             className={`d-flex justify-content-between align-items-center border rounded-3 px-3 py-2 fs-5 ${
-              isWrong ? "opacity-50" : ""
+              isWrong ? "border-danger bg-danger-subtle text-danger-emphasis" : ""
             }`}
           >
             <span>{attempt ? attempt.text : " "}</span>
