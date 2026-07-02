@@ -7,11 +7,13 @@ function GuessPage() {
     useOutletContext();
   const navigate = useNavigate();
   const [guessInput, setGuessInput] = useState("");
-  const [wasCorrect, setWasCorrect] = useState(false);
 
   if (!round) {
     return <Navigate to="/" replace />;
   }
+
+  const lastAttempt = attempts[attempts.length - 1];
+  const wasCorrect = Boolean(lastAttempt && lastAttempt.correct);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -20,14 +22,12 @@ function GuessPage() {
       return;
     }
 
-    const correct = submitGuess(trimmed);
-    setWasCorrect(correct);
+    submitGuess(trimmed);
     setGuessInput("");
   }
 
   function handleNewRound() {
     startNewRound();
-    setWasCorrect(false);
     navigate("/reveal");
   }
 
