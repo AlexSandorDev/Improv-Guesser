@@ -120,9 +120,7 @@ function App() {
 
   return (
     <main className="page-shell">
-      <section className="game-card">
         <header className="game-header">
-          <p className="eyebrow">Pass & Reveal Party Game</p>
           <h1>Improv Guesser</h1>
         </header>
 
@@ -158,18 +156,6 @@ function App() {
                   </button>
                 </div>
               ))}
-            </div>
-
-            <div className="status-grid">
-              <p>
-                <strong>Ready players:</strong> {normalizedPlayerCount}
-              </p>
-              <p>
-                <strong>Minimum:</strong> {MIN_PLAYERS}
-              </p>
-              <p>
-                <strong>Max for selection:</strong> {currentMaxPlayers}
-              </p>
             </div>
 
             {error && <p className="error">{error}</p>}
@@ -219,14 +205,6 @@ function App() {
 
         {phase === "live" && round && (
           <section className="stack">
-            <div className="panel">
-              <h2>All Roles Assigned</h2>
-              <p>Start the improv scene now.</p>
-              <p className="muted">
-                Guesser: <strong>{round.guesser}</strong>
-              </p>
-            </div>
-
             <div className="players-block role-review-list">
               <div className="players-head">
                 <p>All Player Roles</p>
@@ -279,7 +257,7 @@ function App() {
             )}
 
             <button type="button" className="btn primary" onClick={() => startRound(round.players)}>
-              New Round (Same Players)
+              New Round
             </button>
 
             <button type="button" className="btn ghost" onClick={backToSetup}>
@@ -287,7 +265,6 @@ function App() {
             </button>
           </section>
         )}
-      </section>
     </main>
   );
 }
