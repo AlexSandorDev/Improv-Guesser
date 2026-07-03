@@ -2,7 +2,7 @@ import { SITUATIONS } from "./situations.generated.js";
 
 export { SITUATIONS };
 
-export const MIN_PLAYERS = 4;
+export const MIN_PLAYERS = 2;
 
 export function getPerformerCount(playerCount) {
   return Math.max(0, playerCount - 1);
