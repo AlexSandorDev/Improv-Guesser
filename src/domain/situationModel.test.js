@@ -12,7 +12,12 @@ import {
   SITUATIONS,
   supportsPlayerCount,
 } from "./situationModel.js";
-import { parseSituationsMarkdown } from "./situationsMarkdown.js";
+import {
+  normalizeSituation,
+  parseSituationsMarkdown,
+  validateSituation,
+  validateSituationDraft,
+} from "./situationsMarkdown.js";
 
 const baseRole = {
   prompt: "Role prompt",
@@ -244,4 +249,48 @@ test("parseSituationsMarkdown rejects a non-array acceptedAnswers", () => {
   ].join("\n");
 
   assert.throws(() => parseSituationsMarkdown(markdown), /acceptedAnswers/);
+});
+
+test("validateSituation throws using the provided context string", () => {
+  assert.throws(
+    () => validateSituation({ name: "Missing id" }, "Scenario"),
+    /Scenario: "id" must be a non-empty string\./
+  );
+});
+
+test("validateSituationDraft rejects an id already used by another scenario", () => {
+  const draft = {
+    id: "animal-shelter",
+    name: "Duplicate",
+    guesserPrompt: "test",
+    solutionPrompt: "test",
+    roles: [{ name: "Role", mandatory: true, prompt: "prompt" }],
+  };
+
+  assert.throws(() => validateSituationDraft(draft, ["animal-shelter"]), /"id" must be unique/);
+});
+
+test("validateSituationDraft accepts a well-formed draft with a unique id", () => {
+  const draft = {
+    id: "new-scenario",
+    name: "New Scenario",
+    guesserPrompt: "test",
+    solutionPrompt: "test",
+    roles: [{ name: "Role", mandatory: true, prompt: "prompt" }],
+  };
+
+  assert.doesNotThrow(() => validateSituationDraft(draft, ["animal-shelter"]));
+});
+
+test("normalizeSituation is exported and strips unknown fields", () => {
+  const normalized = normalizeSituation({
+    id: "x",
+    name: "X",
+    guesserPrompt: "q",
+    solutionPrompt: "a",
+    roles: [{ name: "Role", mandatory: true, prompt: "p" }],
+    unexpectedField: "should be dropped",
+  });
+
+  assert.equal("unexpectedField" in normalized, false);
 });

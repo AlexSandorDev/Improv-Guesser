@@ -34,7 +34,7 @@ function normalizeRole(role) {
   };
 }
 
-function normalizeSituation(situation) {
+export function normalizeSituation(situation) {
   const normalized = {
     id: situation.id,
     name: situation.name,
@@ -50,9 +50,7 @@ function normalizeSituation(situation) {
   return normalized;
 }
 
-function validateSituation(situation, situationIndex) {
-  const context = `Situation #${situationIndex + 1}`;
-
+export function validateSituation(situation, context) {
   if (typeof situation !== "object" || situation == null || Array.isArray(situation)) {
     throw new Error(`${context}: situation must be an object.`);
   }
@@ -102,7 +100,7 @@ export function parseSituationsMarkdown(markdown) {
     throw new Error("No situation JSON blocks found. Add at least one ```json ... ``` block.");
   }
 
-  situations.forEach((situation, index) => validateSituation(situation, index));
+  situations.forEach((situation, index) => validateSituation(situation, `Situation #${index + 1}`));
 
   const seenIds = new Set();
   situations.forEach((situation) => {
@@ -113,4 +111,14 @@ export function parseSituationsMarkdown(markdown) {
   });
 
   return situations.map((situation) => normalizeSituation(situation));
+}
+
+export function validateSituationDraft(situation, existingIds = []) {
+  validateSituation(situation, "Scenario");
+
+  if (existingIds.includes(situation.id)) {
+    throw new Error(
+      `Scenario: "id" must be unique — "${situation.id}" is already used by another scenario.`
+    );
+  }
 }
