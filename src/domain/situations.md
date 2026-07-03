@@ -5,7 +5,6 @@ Edit each situation in the JSON blocks below.
 Rules:
 - Keep each situation as valid JSON inside `json` code fences.
 - Keep `id` unique.
-- `promptOptions` is optional and lets you randomize tokens used in `solutionPrompt`.
 
 ## Animal Shelter
 
@@ -15,11 +14,6 @@ Rules:
   "name": "Animal Shelter",
   "guesserPrompt": "[Player] _ a _ from the _ _.",
   "solutionPrompt": "{focusPlayer} adopts a dog from the animal shelter.",
-  "clueChecklist": [
-    "adopting a pet",
-    "animal shelter setting",
-    "child and parent choosing a dog"
-  ],
   "roles": [
     {
       "name": "Blue - Injured Dog",
@@ -63,11 +57,6 @@ Rules:
   "name": "Vet Clinic",
   "guesserPrompt": "[Player] _ an _ _ to the _ _.",
   "solutionPrompt": "{focusPlayer} brought an injured dog to a veterinary clinic.",
-  "clueChecklist": [
-    "injured dog visit",
-    "veterinary exam and treatment",
-    "owner discussing symptoms"
-  ],
   "roles": [
     {
       "name": "Blue - Injured Dog",
@@ -106,11 +95,6 @@ Rules:
   "name": "Pirate Treasure",
   "guesserPrompt": "_ to _ [Player] _ _ ",
   "solutionPrompt": "Navigating to Captain {focusPlayer}'s treasure island.",
-  "clueChecklist": [
-    "pirate crew dynamics",
-    "searching for hidden treasure",
-    "navigation toward an island"
-  ],
   "roles": [
     {
       "name": "Treasure Captain",
@@ -147,11 +131,6 @@ Rules:
   "name": "Stormy Night At Sea",
   "guesserPrompt": "[Player] _ to _ _ through a _ _ _ night.",
   "solutionPrompt": "{focusPlayer} is trying to get home through a stormy night at sea.",
-  "clueChecklist": [
-    "storm navigation",
-    "crew panic and commands",
-    "searching for shore"
-  ],
   "roles": [
     {
       "name": "Helmsman",
@@ -195,11 +174,6 @@ Rules:
   "name": "Sushi Restaurant",
   "guesserPrompt": " _ at a _ _.",
   "solutionPrompt": "Date at a sushi restaurant.",
-  "clueChecklist": [
-    "restaurant service interactions",
-    "sushi preparation in the kitchen",
-    "anniversary date atmosphere"
-  ],
   "roles": [
     {
       "name": "Sushi Cook",
