@@ -40,25 +40,13 @@ function fillPrompt(template, values) {
   return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
 }
 
-function pickRandom(items, random = Math.random) {
-  return items[Math.floor(random() * items.length)];
-}
-
 function buildPromptValues(situation, performers, guesser, random = Math.random) {
   const focusPlayer =
     performers.length > 0
       ? performers[Math.floor(random() * performers.length)]
       : guesser;
 
-  const values = { guesser, focusPlayer };
-
-  Object.entries(situation.promptOptions ?? {}).forEach(([key, options]) => {
-    if (Array.isArray(options) && options.length > 0) {
-      values[key] = pickRandom(options, random);
-    }
-  });
-
-  return values;
+  return { guesser, focusPlayer };
 }
 
 function shuffle(items, random = Math.random) {
