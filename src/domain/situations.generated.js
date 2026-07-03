@@ -5,39 +5,45 @@ export const SITUATIONS = [
   {
     "id": "animal-shelter",
     "name": "Animal Shelter",
-    "guesserPrompt": "[Player] _ a _ from the _ _.",
-    "solutionPrompt": "{focusPlayer} adopts a dog from the animal shelter.",
+    "guesserPrompt": "What animal is taken home?",
+    "solutionPrompt": "Cat",
     "roles": [
       {
-        "name": "Blue - Injured Dog",
+        "name": "Injured Dog",
         "mandatory": true,
-        "prompt": "You are an injured dog. You can mime, bark, and make other sounds, but you cannot talk with words."
+        "prompt": "You are an injured dog. You cannot use words."
       },
       {
-        "name": "Green - Happy Cat",
+        "name": "Happy Cat",
         "mandatory": false,
-        "prompt": "You are a happy cat. You can mime and make cat sounds, but you cannot talk with words."
+        "prompt": "You are a happy cat. You cannot use words."
       },
       {
-        "name": "Yellow - Animal Caretaker",
-        "mandatory": false,
-        "prompt": "Take care of the animals and visitors. Keep everyone calm and organized."
-      },
-      {
-        "name": "Purple - Excited Child",
+        "name": "Animal Caretaker",
         "mandatory": true,
-        "prompt": "You are 5 years old and want to bring home an animal with your parent. You will choose the dog. Do not say: adopt, shelter."
+        "prompt": "Take care of the animals and visitors. You have to help the parent take home the pet they want by any means necessary."
       },
       {
-        "name": "Red - Parent",
+        "name": "Child",
         "mandatory": true,
-        "prompt": "You came with your child to choose a pet. You prefer a dog because it leaves less fur around the house."
+        "prompt": "You are 5 years old and really want to bring home a Cat."
       },
       {
-        "name": "Orange - Reception Volunteer",
+        "name": "Parent",
+        "mandatory": true,
+        "prompt": "You came with your child to choose a pet. You really want a dog because it leaves less fur."
+      },
+      {
+        "name": "Grumpy Cat",
         "mandatory": false,
-        "prompt": "You welcome people at the front desk and ask each visitor what they are looking for."
+        "prompt": "You are a grumpy cat. You can't use words."
       }
+    ],
+    "acceptedAnswers": [
+      "Cat",
+      "Dog",
+      "The Cat",
+      "The Dog"
     ]
   },
   {
@@ -49,25 +55,25 @@ export const SITUATIONS = [
       {
         "name": "Blue - Injured Dog",
         "mandatory": true,
-        "prompt": "You are an injured dog. You can bark and mime pain, but you cannot talk with words."
+        "prompt": "You are an injured dog. You cannot use words."
       },
       {
-        "name": "Yellow - Veterinarian",
+        "name": "Veterinarian",
         "mandatory": true,
         "prompt": "You are the veterinary doctor. Ask questions and examine the pets to discover what is wrong."
       },
       {
-        "name": "Purple - Worried Dog Owner",
+        "name": "Worried Dog Owner",
         "mandatory": true,
         "prompt": "You brought your dog because it has been limping all week."
       },
       {
-        "name": "Red - Receptionist",
+        "name": "Whimsy cat",
         "mandatory": false,
         "prompt": "You are a whimsy cat. You constantly interrupt and mess with people. You are jealous of the attention the dog gets"
       },
       {
-        "name": "Orange - Vet Assistant",
+        "name": "Clumsy Assistant",
         "mandatory": false,
         "prompt": "Assist the veterinarian with tools and notes. You are friendly but a little clumsy."
       }
@@ -76,94 +82,60 @@ export const SITUATIONS = [
   {
     "id": "pirate-treasure",
     "name": "Pirate Treasure",
-    "guesserPrompt": "_ to _ [Player] _ _ ",
-    "solutionPrompt": "Navigating to Captain {focusPlayer}'s treasure island.",
+    "guesserPrompt": "Where does the ship end up going?",
+    "solutionPrompt": "Island",
     "roles": [
-      {
-        "name": "Treasure Captain",
-        "mandatory": true,
-        "prompt": "You are Captain {player}. Draw directions to your treasure island. You can't talk, because you are dead."
-      },
       {
         "name": "Silent Helmsman",
-        "mandatory": false,
-        "prompt": "You man the steering wheel. You cannot talk."
+        "mandatory": true,
+        "prompt": "You man the steering wheel. You have to listen to your captain, but you want to get out of the storm and back to shore."
       },
       {
         "name": "Seasick Mate",
-        "mandatory": true,
-        "prompt": "You are a mate who is very seasick and keeps getting distracted by nausea."
+        "mandatory": false,
+        "prompt": "You are a mate who is very seasick and keeps getting distracted by nausea, so you want to exit the storm and go back to shore as fast as possible."
       },
       {
-        "name": "Strict First Mate",
-        "mandatory": false,
-        "prompt": "You are trying to keep discipline on deck and get everyone focused on finding treasure."
+        "name": "First Mate",
+        "mandatory": true,
+        "prompt": "You want to go back to shore so that the crew stays safe."
       },
       {
         "name": "Captain",
         "mandatory": true,
-        "prompt": "You are the Captain, obsessed with finding the treasure quickly. You have to keep order on deck."
+        "prompt": "You want to push trough the storm to get to the treasure on the island."
+      },
+      {
+        "name": "Slimey Second Mate",
+        "mandatory": false,
+        "prompt": "You always agree with the Captain because you want to go up in rank."
       }
-    ]
-  },
-  {
-    "id": "stormy-night",
-    "name": "Stormy Night At Sea",
-    "guesserPrompt": "[Player] _ to _ _ through a _ _ _ night.",
-    "solutionPrompt": "{focusPlayer} is trying to get home through a stormy night at sea.",
-    "roles": [
-      {
-        "name": "Helmsman",
-        "mandatory": true,
-        "prompt": "You man the steering and try to keep the ship steady against big waves."
-      },
-      {
-        "name": "Seasick Mate",
-        "mandatory": true,
-        "prompt": "You are very seasick and can barely help, but still try to follow orders."
-      },
-      {
-        "name": "Captain",
-        "mandatory": true,
-        "prompt": "You are the captain and must keep the crew on course while everyone panics."
-      },
-      {
-        "name": "Navigator",
-        "mandatory": false,
-        "prompt": "You are trying to find shore in near-darkness using unreliable tools."
-      },
-      {
-        "name": "Overboard Sailor",
-        "mandatory": false,
-        "prompt": "You fell overboard and are trying to get back onto the ship without being left behind."
-      },
-      {
-        "name": "Deckhand",
-        "mandatory": false,
-        "prompt": "You are securing ropes and cargo while shouting updates about the storm."
-      }
+    ],
+    "acceptedAnswers": [
+      "Island",
+      "Treasure",
+      "Out of the storm",
+      "Shore",
+      "Back to shore",
+      "tresure island",
+      "storm"
     ]
   },
   {
     "id": "sushi-restaurant",
     "name": "Sushi Restaurant",
-    "guesserPrompt": " _ at a _ _.",
+    "guesserPrompt": "_ at a _ _.",
     "solutionPrompt": "Date at a sushi restaurant.",
     "roles": [
       {
-        "name": "Sushi Cook",
+        "name": "Head Sushi Chef",
         "mandatory": false,
-        "prompt": "You are trying to cook sushi quickly. You cannot use your normal language and should fake Japanese sounds."
-      },
-      {
-        "name": "Head Chef",
-        "mandatory": false,
-        "prompt": "You are the head chef and keep criticizing the cooks. You only speak in fake Japanese sounds."
+        "prompt": "You only speak Japanese. You are cooking in front of a couple."
       },
       {
         "name": "Date Guest",
         "mandatory": true,
-        "prompt": "You are on an anniversary date and are excited because you love sushi. You've never been here before so you ask the waiter for recommendations."
+        "prompt": "You are on a date with {focusPlayer}"
       },
       {
         "name": "Date Planner",
