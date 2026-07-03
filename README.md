@@ -35,3 +35,10 @@ Each role now only needs:
 - `prompt`
 
 The app auto-runs sync during `npm run dev` and `npm run build`, so in normal use you can just edit the markdown and run as usual.
+
+## Scenario editor (author-only)
+
+A hidden page at `/admin/scenarios` lets you add, edit, and delete situations without
+hand-editing JSON. It needs a Chromium browser (Chrome or Edge) and prompts you to pick
+`src/domain/situations.md` once; saving writes straight back to that file. After saving, run
+`npm run sync:situations` (or restart `npm run dev`) to see the change reflected in the game.
