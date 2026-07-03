@@ -5,7 +5,6 @@ import { createRound, getNextGuesserIndex, SITUATIONS } from "./domain/situation
 import GuessPage from "./pages/GuessPage";
 import RevealPage from "./pages/RevealPage";
 import RolesPage from "./pages/RolesPage";
-import ScenarioEditorPage from "./pages/ScenarioEditorPage";
 import SetupPage from "./pages/SetupPage";
 
 const INITIAL_LIVES = 6;
@@ -108,7 +107,6 @@ function App() {
               <Route path="/roles" element={<RolesPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
-            <Route path="/admin/scenarios" element={<ScenarioEditorPage />} />
           </Routes>
         </div>
       </main>

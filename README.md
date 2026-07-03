@@ -38,7 +38,14 @@ The app auto-runs sync during `npm run dev` and `npm run build`, so in normal us
 
 ## Scenario editor (author-only)
 
-A hidden page at `/admin/scenarios` lets you add, edit, and delete situations without
-hand-editing JSON. It needs a Chromium browser (Chrome or Edge) and prompts you to pick
-`src/domain/situations.md` once; saving writes straight back to that file. After saving, run
-`npm run sync:situations` (or restart `npm run dev`) to see the change reflected in the game.
+A standalone tool lets you add, edit, and delete situations without hand-editing JSON:
+
+```bash
+npm run scenario-editor
+```
+
+Then open the printed URL (`http://localhost:5544`) in any browser. It's a small
+self-contained Node server + a single HTML page — no build step, no browser file-picker
+permissions needed. Saving writes directly to `src/domain/situations.md` and automatically
+regenerates `src/domain/situations.generated.js`, so changes show up the next time you
+start (or reload) `npm run dev` — no extra sync step needed.

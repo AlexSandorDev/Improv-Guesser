@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Scenario Editor — Improv Guesser</title>
+<style>
+  :root {
+    --accent: #e85d04;
+    --accent-dark: #c24f03;
+    --danger: #c0392b;
+    --border: #ddd;
+    --bg: #faf7f2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: #212529;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 24px 16px 64px;
+  }
+  h1 { font-size: 1.75rem; margin-bottom: 4px; }
+  h2 { font-size: 1.3rem; margin: 0 0 12px; }
+  .subtitle { color: #666; margin-top: 0; margin-bottom: 24px; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .list-item .id { color: #777; font-size: 0.85rem; }
+  label { display: block; font-weight: 600; margin-bottom: 4px; margin-top: 14px; }
+  label:first-child { margin-top: 0; }
+  .hint { color: #666; font-size: 0.85rem; margin: 2px 0 6px; }
+  .hint code { background: #f0ede8; padding: 1px 4px; border-radius: 3px; }
+  input[type="text"], textarea {
+    width: 100%;
+    font-size: 1rem;
+    padding: 8px 10px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 48px; }
+  button {
+    font-size: 0.95rem;
+    padding: 9px 16px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); color: #fff; }
+  button.primary:hover { background: var(--accent-dark); }
+  button.secondary { background: #fff; border-color: #999; color: #333; }
+  button.secondary:hover { background: #f2f2f2; }
+  button.danger { background: #fff; border-color: var(--danger); color: var(--danger); }
+  button.danger:hover { background: #fdecea; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .role-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .checkbox-row input { width: auto; }
+  .answer-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .answer-row input { flex: 1; }
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+  .error-banner {
+    background: #fdecea;
+    color: var(--danger);
+    border: 1px solid #f5c2c0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .success-banner {
+    background: #e6f4ea;
+    color: #1e7b34;
+    border: 1px solid #b9dfc4;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .range-hint { color: #555; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <h1>Scenario Editor</h1>
+  <p class="subtitle">Improv Guesser — add, edit, and delete situations</p>
+  <div id="app"></div>
+
+<script>
+(function () {
+  const app = document.getElementById("app");
+  let situations = [];
+  let view = { mode: "list" }; // { mode: "list" } | { mode: "form", editingId: string | null }
+  let banner = null; // { type: "error" | "success", message: string }
+
+  function slugify(name) {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function getSupportedPlayerRange(roles) {
+    const mandatoryCount = roles.filter((role) => role.mandatory).length;
+    return { min: mandatoryCount + 1, max: roles.length + 1 };
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text ?? "";
+    return div.innerHTML;
+  }
+
+  async function loadSituations() {
+    const response = await fetch("/api/situations");
+    const data = await response.json();
+    if (!response.ok) {
+      banner = { type: "error", message: data.error || "Failed to load situations." };
+      situations = [];
+    } else {
+      situations = data.situations;
+    }
+    render();
+  }
+
+  async function saveSituations(nextSituations) {
+    const response = await fetch("/api/situations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ situations: nextSituations }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      return { ok: false, error: data.error || "Failed to save." };
+    }
+    situations = data.situations;
+    return { ok: true };
+  }
+
+  function renderList() {
+    const rows = situations
+      .map(
+        (situation) => `
+        <div class="list-item">
+          <div>
+            <div><strong>${escapeHtml(situation.name)}</strong></div>
+            <div class="id">${escapeHtml(situation.id)}</div>
+          </div>
+          <div class="actions" style="margin-top:0">
+            <button class="secondary" data-action="edit" data-id="${escapeHtml(situation.id)}">Edit</button>
+            <button class="danger" data-action="delete" data-id="${escapeHtml(situation.id)}">Delete</button>
+          </div>
+        </div>`
+      )
+      .join("");
+
+    app.innerHTML = `
+      ${renderBanner()}
+      <div class="row" style="margin-bottom:16px">
+        <h2 style="margin:0">Situations</h2>
+        <button class="primary" data-action="add">+ Add Scenario</button>
+      </div>
+      ${rows || '<p class="hint">No situations yet.</p>'}
+    `;
+
+    app.querySelector('[data-action="add"]').addEventListener("click", () => {
+      banner = null;
+      view = { mode: "form", editingId: null };
+      render();
+    });
+
+    app.querySelectorAll('[data-action="edit"]').forEach((button) => {
+      button.addEventListener("click", () => {
+        banner = null;
+        view = { mode: "form", editingId: button.dataset.id };
+        render();
+      });
+    });
+
+    app.querySelectorAll('[data-action="delete"]').forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = situations.find((situation) => situation.id === button.dataset.id);
+        if (!target || !window.confirm(`Delete "${target.name}"?`)) {
+          return;
+        }
+        const result = await saveSituations(situations.filter((situation) => situation.id !== target.id));
+        banner = result.ok
+          ? { type: "success", message: `Deleted "${target.name}".` }
+          : { type: "error", message: result.error };
+        render();
+      });
+    });
+  }
+
+  function renderBanner() {
+    if (!banner) return "";
+    const cls = banner.type === "error" ? "error-banner" : "success-banner";
+    return `<div class="${cls}">${escapeHtml(banner.message)}</div>`;
+  }
+
+  function renderForm() {
+    const editing = view.editingId ? situations.find((s) => s.id === view.editingId) : null;
+    const existingIds = situations.map((s) => s.id).filter((id) => id !== view.editingId);
+
+    const draft = {
+      name: editing ? editing.name : "",
+      id: editing ? editing.id : "",
+      idManuallyEdited: Boolean(editing),
+      guesserPrompt: editing ? editing.guesserPrompt : "",
+      solutionPrompt: editing ? editing.solutionPrompt : "",
+      acceptedAnswers: editing && editing.acceptedAnswers ? [...editing.acceptedAnswers] : [],
+      roles: editing ? editing.roles.map((r) => ({ ...r })) : [{ name: "", prompt: "", mandatory: true }],
+    };
+
+    function renderRoles() {
+      const { min, max } = getSupportedPlayerRange(draft.roles);
+      return `
+        <div class="row" style="margin-top:20px">
+          <h2 style="margin:0;font-size:1.1rem">Roles</h2>
+          <button type="button" class="secondary" data-action="add-role">+ Add Role</button>
+        </div>
+        ${draft.roles
+          .map(
+            (role, index) => `
+          <div class="role-card">
+            <label>Title</label>
+            <input type="text" data-role-field="name" data-index="${index}" value="${escapeHtml(role.name)}" />
+            <label>Description</label>
+            <p class="hint">Instructions shown to this player. <code>{player}</code> and <code>{focusPlayer}</code> tokens are available.</p>
+            <textarea data-role-field="prompt" data-index="${index}" rows="2">${escapeHtml(role.prompt)}</textarea>
+            <div class="checkbox-row">
+              <input type="checkbox" id="role-optional-${index}" data-role-field="optional" data-index="${index}" ${
+                !role.mandatory ? "checked" : ""
+              } />
+              <label for="role-optional-${index}" style="margin:0">Optional role (added only for bigger groups)</label>
+            </div>
+            <div class="actions">
+              <button type="button" class="danger" data-action="remove-role" data-index="${index}" ${
+                draft.roles.length <= 1 ? "disabled" : ""
+              }>Remove Role</button>
+            </div>
+          </div>`
+          )
+          .join("")}
+        <p class="range-hint">Supports ${min}–${max} players</p>
+      `;
+    }
+
+    function renderAnswers() {
+      return `
+        <div class="row" style="margin-top:20px">
+          <h2 style="margin:0;font-size:1.1rem">Accepted Answers</h2>
+          <button type="button" class="secondary" data-action="add-answer">+ Add Answer</button>
+        </div>
+        <p class="hint">Alternate phrasings that also count as correct. Leave empty to only accept the Solution text.</p>
+        ${draft.acceptedAnswers
+          .map(
+            (answer, index) => `
+          <div class="answer-row">
+            <input type="text" data-answer-index="${index}" value="${escapeHtml(answer)}" />
+            <button type="button" class="danger" data-action="remove-answer" data-index="${index}">Remove</button>
+          </div>`
+          )
+          .join("")}
+      `;
+    }
+
+    function paint() {
+      app.innerHTML = `
+        ${renderBanner()}
+        <h2>${editing ? "Edit Scenario" : "Add Scenario"}</h2>
+        <div class="card">
+          <label for="f-name">Name</label>
+          <input type="text" id="f-name" value="${escapeHtml(draft.name)}" />
+
+          <label for="f-id">Id</label>
+          <input type="text" id="f-id" value="${escapeHtml(draft.id)}" />
+
+          <label for="f-question">Question</label>
+          <p class="hint">Shown to the guesser. Use <code>[Player]</code> or <code>_</code> for blanks, e.g. <code>[Player] _ a _ from the _ _.</code></p>
+          <textarea id="f-question" rows="2">${escapeHtml(draft.guesserPrompt)}</textarea>
+
+          <label for="f-solution">Solution</label>
+          <p class="hint">The answer, revealed when the round ends. Supports <code>{focusPlayer}</code> and <code>{guesser}</code> tokens.</p>
+          <textarea id="f-solution" rows="2">${escapeHtml(draft.solutionPrompt)}</textarea>
+        </div>
+
+        <div class="card">${renderAnswers()}</div>
+        <div class="card">${renderRoles()}</div>
+
+        <div class="actions">
+          <button type="button" class="primary" data-action="save">Save Scenario</button>
+          <button type="button" class="secondary" data-action="cancel">Cancel</button>
+        </div>
+      `;
+      wire();
+    }
+
+    function wire() {
+      const nameInput = document.getElementById("f-name");
+      const idInput = document.getElementById("f-id");
+
+      nameInput.addEventListener("input", (event) => {
+        draft.name = event.target.value;
+        if (!editing && !draft.idManuallyEdited) {
+          idInput.value = slugify(draft.name);
+          draft.id = idInput.value;
+        }
+      });
+
+      idInput.addEventListener("input", (event) => {
+        draft.id = event.target.value;
+        draft.idManuallyEdited = true;
+      });
+
+      document.getElementById("f-question").addEventListener("input", (event) => {
+        draft.guesserPrompt = event.target.value;
+      });
+      document.getElementById("f-solution").addEventListener("input", (event) => {
+        draft.solutionPrompt = event.target.value;
+      });
+
+      app.querySelectorAll("[data-role-field]").forEach((el) => {
+        const index = Number(el.dataset.index);
+        const field = el.dataset.roleField;
+        el.addEventListener(field === "optional" ? "change" : "input", (event) => {
+          if (field === "optional") {
+            draft.roles[index].mandatory = !event.target.checked;
+          } else {
+            draft.roles[index][field] = event.target.value;
+          }
+          if (field === "optional") paint();
+        });
+      });
+
+      app.querySelectorAll("[data-answer-index]").forEach((el) => {
+        el.addEventListener("input", (event) => {
+          draft.acceptedAnswers[Number(el.dataset.answerIndex)] = event.target.value;
+        });
+      });
+
+      const addRoleBtn = app.querySelector('[data-action="add-role"]');
+      if (addRoleBtn) {
+        addRoleBtn.addEventListener("click", () => {
+          draft.roles.push({ name: "", prompt: "", mandatory: true });
+          paint();
+        });
+      }
+
+      app.querySelectorAll('[data-action="remove-role"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          if (draft.roles.length <= 1) return;
+          draft.roles.splice(Number(button.dataset.index), 1);
+          paint();
+        });
+      });
+
+      const addAnswerBtn = app.querySelector('[data-action="add-answer"]');
+      if (addAnswerBtn) {
+        addAnswerBtn.addEventListener("click", () => {
+          draft.acceptedAnswers.push("");
+          paint();
+        });
+      }
+
+      app.querySelectorAll('[data-action="remove-answer"]').forEach((button) => {
+        button.addEventListener("click", () => {
+          draft.acceptedAnswers.splice(Number(button.dataset.index), 1);
+          paint();
+        });
+      });
+
+      app.querySelector('[data-action="cancel"]').addEventListener("click", () => {
+        banner = null;
+        view = { mode: "list" };
+        render();
+      });
+
+      app.querySelector('[data-action="save"]').addEventListener("click", async () => {
+        const trimmedAnswers = draft.acceptedAnswers.map((a) => a.trim()).filter(Boolean);
+        const situation = {
+          id: draft.id.trim(),
+          name: draft.name.trim(),
+          guesserPrompt: draft.guesserPrompt.trim(),
+          solutionPrompt: draft.solutionPrompt.trim(),
+          roles: draft.roles.map((role) => ({
+            name: role.name.trim(),
+            prompt: role.prompt.trim(),
+            mandatory: role.mandatory,
+          })),
+        };
+        if (trimmedAnswers.length > 0) {
+          situation.acceptedAnswers = trimmedAnswers;
+        }
+        if (existingIds.includes(situation.id)) {
+          banner = { type: "error", message: `"id" must be unique — "${situation.id}" is already used by another scenario.` };
+          paint();
+          return;
+        }
+
+        const index = situations.findIndex((s) => s.id === view.editingId);
+        const nextSituations =
+          index === -1
+            ? [...situations, situation]
+            : situations.map((s, i) => (i === index ? situation : s));
+
+        const result = await saveSituations(nextSituations);
+        if (result.ok) {
+          banner = { type: "success", message: `Saved "${situation.name}".` };
+          view = { mode: "list" };
+          render();
+        } else {
+          banner = { type: "error", message: result.error };
+          paint();
+        }
+      });
+    }
+
+    paint();
+  }
+
+  function render() {
+    if (view.mode === "form") {
+      renderForm();
+    } else {
+      renderList();
+    }
+  }
+
+  loadSituations();
+})();
+</script>
+</body>
+</html>

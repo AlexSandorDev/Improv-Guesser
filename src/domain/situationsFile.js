@@ -28,22 +28,3 @@ export function serializeSituationsMarkdown(preamble, situations) {
 
   return `${preamble}\n${blocks}`;
 }
-
-export function isFileSystemAccessSupported() {
-  return typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
-}
-
-export async function openSituationsFile() {
-  const [handle] = await window.showOpenFilePicker({
-    types: [{ description: "Markdown", accept: { "text/markdown": [".md"] } }],
-  });
-  const file = await handle.getFile();
-  const text = await file.text();
-  return { handle, text };
-}
-
-export async function writeSituationsFile(handle, text) {
-  const writable = await handle.createWritable();
-  await writable.write(text);
-  await writable.close();
-}

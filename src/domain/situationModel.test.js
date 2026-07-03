@@ -8,7 +8,6 @@ import {
   createRound,
   getNextGuesserIndex,
   getNoCompatibleSituationError,
-  getSupportedPlayerRange,
   hasUniquePlayerNames,
   SITUATIONS,
   supportsPlayerCount,
@@ -294,23 +293,4 @@ test("normalizeSituation is exported and strips unknown fields", () => {
   });
 
   assert.equal("unexpectedField" in normalized, false);
-});
-
-test("getSupportedPlayerRange derives min/max players from mandatory and total role counts", () => {
-  const roles = [
-    { name: "A", mandatory: true, prompt: "p" },
-    { name: "B", mandatory: true, prompt: "p" },
-    { name: "C", mandatory: false, prompt: "p" },
-  ];
-
-  assert.deepEqual(getSupportedPlayerRange(roles), { min: 3, max: 4 });
-});
-
-test("getSupportedPlayerRange handles all-mandatory role lists", () => {
-  const roles = [
-    { name: "A", mandatory: true, prompt: "p" },
-    { name: "B", mandatory: true, prompt: "p" },
-  ];
-
-  assert.deepEqual(getSupportedPlayerRange(roles), { min: 3, max: 3 });
 });

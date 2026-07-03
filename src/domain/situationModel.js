@@ -14,11 +14,6 @@ export function supportsPlayerCount(situation, playerCount) {
   return performerCount >= mandatoryCount && performerCount <= situation.roles.length;
 }
 
-export function getSupportedPlayerRange(roles) {
-  const mandatoryCount = roles.filter((role) => role.mandatory).length;
-  return { min: mandatoryCount + 1, max: roles.length + 1 };
-}
-
 export function getCompatibleSituations(situations, playerCount) {
   return situations.filter((situation) => supportsPlayerCount(situation, playerCount));
 }
