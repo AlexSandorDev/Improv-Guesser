@@ -12,26 +12,6 @@ function assertStringArray(value, fieldName, context) {
   }
 }
 
-function validatePromptOptions(promptOptions, context) {
-  if (promptOptions == null) {
-    return;
-  }
-
-  if (typeof promptOptions !== "object" || Array.isArray(promptOptions)) {
-    throw new Error(`${context}: "promptOptions" must be an object when provided.`);
-  }
-
-  Object.entries(promptOptions).forEach(([key, choices]) => {
-    if (!Array.isArray(choices) || choices.length === 0) {
-      throw new Error(`${context}: prompt option "${key}" must be a non-empty string array.`);
-    }
-
-    if (choices.some((choice) => typeof choice !== "string" || !choice.trim())) {
-      throw new Error(`${context}: prompt option "${key}" contains an invalid value.`);
-    }
-  });
-}
-
 function validateRole(role, roleIndex, context) {
   const roleContext = `${context}, role #${roleIndex + 1}`;
 
@@ -60,15 +40,8 @@ function normalizeSituation(situation) {
     name: situation.name,
     guesserPrompt: situation.guesserPrompt,
     solutionPrompt: situation.solutionPrompt,
-    clueChecklist: [...situation.clueChecklist],
     roles: situation.roles.map((role) => normalizeRole(role)),
   };
-
-  if (situation.promptOptions != null) {
-    normalized.promptOptions = Object.fromEntries(
-      Object.entries(situation.promptOptions).map(([key, values]) => [key, [...values]])
-    );
-  }
 
   if (situation.acceptedAnswers != null) {
     normalized.acceptedAnswers = [...situation.acceptedAnswers];
@@ -88,7 +61,6 @@ function validateSituation(situation, situationIndex) {
   assertNonEmptyString(situation.name, "name", context);
   assertNonEmptyString(situation.guesserPrompt, "guesserPrompt", context);
   assertNonEmptyString(situation.solutionPrompt, "solutionPrompt", context);
-  assertStringArray(situation.clueChecklist, "clueChecklist", context);
 
   if (situation.acceptedAnswers != null) {
     assertStringArray(situation.acceptedAnswers, "acceptedAnswers", context);
@@ -99,7 +71,6 @@ function validateSituation(situation, situationIndex) {
   }
 
   situation.roles.forEach((role, roleIndex) => validateRole(role, roleIndex, context));
-  validatePromptOptions(situation.promptOptions, context);
 }
 
 export function parseSituationsMarkdown(markdown) {

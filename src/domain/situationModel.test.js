@@ -22,7 +22,6 @@ const threeMandatoryTwoOptional = {
   id: "three-mandatory-two-optional",
   name: "Three Mandatory Two Optional",
   guesserPrompt: "{guesser}: test prompt",
-  clueChecklist: ["clue one"],
   roles: [
     { ...baseRole, name: "Mandatory One", mandatory: true },
     { ...baseRole, name: "Mandatory Two", mandatory: true },
@@ -36,7 +35,6 @@ const fourMandatoryRoles = {
   id: "four-mandatory",
   name: "Four Mandatory",
   guesserPrompt: "{guesser}: test prompt",
-  clueChecklist: ["clue one"],
   roles: [
     { ...baseRole, name: "Mandatory One", mandatory: true },
     { ...baseRole, name: "Mandatory Two", mandatory: true },
@@ -50,7 +48,6 @@ const tokenTemplateSituation = {
   name: "Token Template Situation",
   guesserPrompt: "{guesser} leads the scene",
   solutionPrompt: "{focusPlayer} solved it",
-  clueChecklist: ["clue one"],
   roles: [
     {
       ...baseRole,
@@ -170,7 +167,6 @@ const situationWithAcceptedAnswers = {
   guesserPrompt: "{guesser} leads the scene",
   solutionPrompt: "{focusPlayer} solved it",
   acceptedAnswers: ["{focusPlayer} solved it", "case closed"],
-  clueChecklist: ["clue one"],
   roles: [
     { ...baseRole, name: "Role One", mandatory: true, prompt: "{player} plays along" },
     { ...baseRole, name: "Role Two", mandatory: true, prompt: "{player} plays along" },
@@ -201,7 +197,6 @@ test("parseSituationsMarkdown accepts a situation with acceptedAnswers", () => {
     '  "guesserPrompt": "test prompt",',
     '  "solutionPrompt": "the answer",',
     '  "acceptedAnswers": ["the answer", "an answer"],',
-    '  "clueChecklist": ["clue one"],',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
     "  ]",
@@ -221,7 +216,6 @@ test("parseSituationsMarkdown omits acceptedAnswers when not provided", () => {
     '  "name": "Without Answers",',
     '  "guesserPrompt": "test prompt",',
     '  "solutionPrompt": "the answer",',
-    '  "clueChecklist": ["clue one"],',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
     "  ]",
@@ -242,7 +236,6 @@ test("parseSituationsMarkdown rejects a non-array acceptedAnswers", () => {
     '  "guesserPrompt": "test prompt",',
     '  "solutionPrompt": "the answer",',
     '  "acceptedAnswers": "the answer",',
-    '  "clueChecklist": ["clue one"],',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
     "  ]",
