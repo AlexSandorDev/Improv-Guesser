@@ -146,6 +146,33 @@ test("createRound fills guesser and role templates with token values", () => {
   assert.equal(round.cards.Kai.prompt, "Kai takes cues from Alex");
 });
 
+const roleTitleTemplateSituation = {
+  id: "role-title-template",
+  name: "Role Title Template Situation",
+  guesserPrompt: "{guesser} leads the scene",
+  solutionPrompt: "{Captain} steers the ship while {First Mate} watches",
+  roles: [
+    { ...baseRole, name: "Captain", mandatory: true, prompt: "You are the captain" },
+    { ...baseRole, name: "First Mate", mandatory: true, prompt: "You serve under {Captain}" },
+    {
+      ...baseRole,
+      name: "Deckhand",
+      mandatory: true,
+      prompt: "You take orders from {Captain} and {First Mate}",
+    },
+  ],
+};
+
+test("createRound resolves {RoleTitle} tokens to whichever player holds that role", () => {
+  const players = ["Alex", "Sam", "Jo", "Kai"];
+  const round = createRound(players, roleTitleTemplateSituation.id, () => 0, [roleTitleTemplateSituation]);
+
+  assert.equal(round.cards.Kai.prompt, "You are the captain");
+  assert.equal(round.cards.Sam.prompt, "You serve under Kai");
+  assert.equal(round.cards.Jo.prompt, "You take orders from Kai and Sam");
+  assert.equal(round.solution, "Kai steers the ship while Sam watches");
+});
+
 test("situation markdown is synced to generated situations", () => {
   const markdown = readFileSync(join(domainDir, "situations.md"), "utf8");
   const parsedSituations = parseSituationsMarkdown(markdown);

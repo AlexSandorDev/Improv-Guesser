@@ -37,16 +37,22 @@ export function getNextGuesserIndex(currentIndex, playerCount) {
 }
 
 function fillPrompt(template, values) {
-  return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
+  return template.replace(/\{([^}]+)\}/g, (_, key) => values[key] ?? "");
 }
 
-function buildPromptValues(situation, performers, guesser, random = Math.random) {
+function buildPromptValues(situation, performers, guesser, selectedRoles, random = Math.random) {
   const focusPlayer =
     performers.length > 0
       ? performers[Math.floor(random() * performers.length)]
       : guesser;
 
-  return { guesser, focusPlayer };
+  const values = { guesser, focusPlayer };
+
+  selectedRoles.forEach((role, index) => {
+    values[role.name] = performers[index];
+  });
+
+  return values;
 }
 
 function shuffle(items, random = Math.random) {
@@ -92,7 +98,7 @@ export function createRound(
     [...mandatoryRoles, ...optionalRoles.slice(0, optionalNeeded)],
     random
   );
-  const promptValues = buildPromptValues(situation, performers, guesser, random);
+  const promptValues = buildPromptValues(situation, performers, guesser, selectedRoles, random);
 
   const cards = {};
 
