@@ -43,6 +43,15 @@ function GuessPage() {
       <GuessAttempts attempts={attempts} maxAttempts={initialLives} />
 
       {!roundOver && (
+        <div className="card">
+          <div className="card-body text-center">
+            <p className="text-body-secondary small text-uppercase fw-bold mb-1">Question</p>
+            <p className="fs-5 fw-bold mb-0">{round.cards[round.guesser].prompt}</p>
+          </div>
+        </div>
+      )}
+
+      {!roundOver && (
         <form onSubmit={handleSubmit} className="d-grid gap-3">
           <input
             value={guessInput}
