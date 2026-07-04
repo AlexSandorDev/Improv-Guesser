@@ -7,8 +7,12 @@ function assertNonEmptyString(value, fieldName, context) {
 }
 
 function assertStringArray(value, fieldName, context) {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== "string" || !item.trim())) {
-    throw new Error(`${context}: "${fieldName}" must be an array of non-empty strings.`);
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    value.some((item) => typeof item !== "string" || !item.trim())
+  ) {
+    throw new Error(`${context}: "${fieldName}" must be a non-empty array of non-empty strings.`);
   }
 }
 
@@ -35,19 +39,13 @@ function normalizeRole(role) {
 }
 
 export function normalizeSituation(situation) {
-  const normalized = {
+  return {
     id: situation.id,
     name: situation.name,
     guesserPrompt: situation.guesserPrompt,
-    solutionPrompt: situation.solutionPrompt,
+    acceptedAnswers: [...situation.acceptedAnswers],
     roles: situation.roles.map((role) => normalizeRole(role)),
   };
-
-  if (situation.acceptedAnswers != null) {
-    normalized.acceptedAnswers = [...situation.acceptedAnswers];
-  }
-
-  return normalized;
 }
 
 export function validateSituation(situation, context) {
@@ -58,11 +56,7 @@ export function validateSituation(situation, context) {
   assertNonEmptyString(situation.id, "id", context);
   assertNonEmptyString(situation.name, "name", context);
   assertNonEmptyString(situation.guesserPrompt, "guesserPrompt", context);
-  assertNonEmptyString(situation.solutionPrompt, "solutionPrompt", context);
-
-  if (situation.acceptedAnswers != null) {
-    assertStringArray(situation.acceptedAnswers, "acceptedAnswers", context);
-  }
+  assertStringArray(situation.acceptedAnswers, "acceptedAnswers", context);
 
   if (!Array.isArray(situation.roles) || situation.roles.length === 0) {
     throw new Error(`${context}: "roles" must be a non-empty array.`);

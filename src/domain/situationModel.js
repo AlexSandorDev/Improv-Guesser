@@ -119,11 +119,9 @@ export function createRound(
     };
   });
 
-  const solution = fillPrompt(situation.solutionPrompt ?? situation.name, promptValues);
-  const acceptedTemplated = (situation.acceptedAnswers ?? []).map((template) =>
-    fillPrompt(template, promptValues)
-  );
-  const matchAnswers = [...new Set([solution, ...acceptedTemplated])];
+  const acceptedTemplated = situation.acceptedAnswers.map((template) => fillPrompt(template, promptValues));
+  const matchAnswers = [...new Set(acceptedTemplated)];
+  const solution = acceptedTemplated[0];
 
   return {
     situation,

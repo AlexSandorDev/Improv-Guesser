@@ -27,6 +27,7 @@ const threeMandatoryTwoOptional = {
   id: "three-mandatory-two-optional",
   name: "Three Mandatory Two Optional",
   guesserPrompt: "{guesser}: test prompt",
+  acceptedAnswers: ["test answer"],
   roles: [
     { ...baseRole, name: "Mandatory One", mandatory: true },
     { ...baseRole, name: "Mandatory Two", mandatory: true },
@@ -40,6 +41,7 @@ const fourMandatoryRoles = {
   id: "four-mandatory",
   name: "Four Mandatory",
   guesserPrompt: "{guesser}: test prompt",
+  acceptedAnswers: ["test answer"],
   roles: [
     { ...baseRole, name: "Mandatory One", mandatory: true },
     { ...baseRole, name: "Mandatory Two", mandatory: true },
@@ -52,7 +54,7 @@ const tokenTemplateSituation = {
   id: "token-template",
   name: "Token Template Situation",
   guesserPrompt: "{guesser} leads the scene",
-  solutionPrompt: "{focusPlayer} solved it",
+  acceptedAnswers: ["{focusPlayer} solved it"],
   roles: [
     {
       ...baseRole,
@@ -150,7 +152,7 @@ const roleTitleTemplateSituation = {
   id: "role-title-template",
   name: "Role Title Template Situation",
   guesserPrompt: "{guesser} leads the scene",
-  solutionPrompt: "{Captain} steers the ship while {First Mate} watches",
+  acceptedAnswers: ["{Captain} steers the ship while {First Mate} watches"],
   roles: [
     { ...baseRole, name: "Captain", mandatory: true, prompt: "You are the captain" },
     { ...baseRole, name: "First Mate", mandatory: true, prompt: "You serve under {Captain}" },
@@ -197,7 +199,6 @@ const situationWithAcceptedAnswers = {
   id: "with-accepted-answers",
   name: "With Accepted Answers",
   guesserPrompt: "{guesser} leads the scene",
-  solutionPrompt: "{focusPlayer} solved it",
   acceptedAnswers: ["{focusPlayer} solved it", "case closed"],
   roles: [
     { ...baseRole, name: "Role One", mandatory: true, prompt: "{player} plays along" },
@@ -206,18 +207,12 @@ const situationWithAcceptedAnswers = {
   ],
 };
 
-test("createRound builds matchAnswers from solutionPrompt plus deduplicated acceptedAnswers", () => {
+test("createRound templates and deduplicates acceptedAnswers into matchAnswers", () => {
   const players = ["Alex", "Sam", "Jo", "Kai"];
   const round = createRound(players, situationWithAcceptedAnswers.id, () => 0, [situationWithAcceptedAnswers]);
 
-  assert.deepEqual(round.matchAnswers, [round.solution, "case closed"]);
-});
-
-test("createRound falls back to solutionPrompt alone when acceptedAnswers is absent", () => {
-  const players = ["Alex", "Sam", "Jo", "Kai"];
-  const round = createRound(players, tokenTemplateSituation.id, () => 0, [tokenTemplateSituation]);
-
-  assert.deepEqual(round.matchAnswers, [round.solution]);
+  assert.deepEqual(round.matchAnswers, ["Sam solved it", "case closed"]);
+  assert.equal(round.solution, "Sam solved it");
 });
 
 test("parseSituationsMarkdown accepts a situation with acceptedAnswers", () => {
@@ -227,7 +222,6 @@ test("parseSituationsMarkdown accepts a situation with acceptedAnswers", () => {
     '  "id": "with-answers",',
     '  "name": "With Answers",',
     '  "guesserPrompt": "test prompt",',
-    '  "solutionPrompt": "the answer",',
     '  "acceptedAnswers": ["the answer", "an answer"],',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
@@ -240,14 +234,13 @@ test("parseSituationsMarkdown accepts a situation with acceptedAnswers", () => {
   assert.deepEqual(situation.acceptedAnswers, ["the answer", "an answer"]);
 });
 
-test("parseSituationsMarkdown omits acceptedAnswers when not provided", () => {
+test("parseSituationsMarkdown rejects a situation with acceptedAnswers missing", () => {
   const markdown = [
     "```json",
     "{",
     '  "id": "without-answers",',
     '  "name": "Without Answers",',
     '  "guesserPrompt": "test prompt",',
-    '  "solutionPrompt": "the answer",',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
     "  ]",
@@ -255,8 +248,25 @@ test("parseSituationsMarkdown omits acceptedAnswers when not provided", () => {
     "```",
   ].join("\n");
 
-  const [situation] = parseSituationsMarkdown(markdown);
-  assert.equal("acceptedAnswers" in situation, false);
+  assert.throws(() => parseSituationsMarkdown(markdown), /acceptedAnswers/);
+});
+
+test("parseSituationsMarkdown rejects an empty acceptedAnswers array", () => {
+  const markdown = [
+    "```json",
+    "{",
+    '  "id": "empty-answers",',
+    '  "name": "Empty Answers",',
+    '  "guesserPrompt": "test prompt",',
+    '  "acceptedAnswers": [],',
+    '  "roles": [',
+    '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
+    "  ]",
+    "}",
+    "```",
+  ].join("\n");
+
+  assert.throws(() => parseSituationsMarkdown(markdown), /acceptedAnswers/);
 });
 
 test("parseSituationsMarkdown rejects a non-array acceptedAnswers", () => {
@@ -266,7 +276,6 @@ test("parseSituationsMarkdown rejects a non-array acceptedAnswers", () => {
     '  "id": "bad-answers",',
     '  "name": "Bad Answers",',
     '  "guesserPrompt": "test prompt",',
-    '  "solutionPrompt": "the answer",',
     '  "acceptedAnswers": "the answer",',
     '  "roles": [',
     '    { "name": "Role One", "mandatory": true, "prompt": "role prompt" }',
@@ -290,7 +299,7 @@ test("validateSituationDraft rejects an id already used by another scenario", ()
     id: "animal-shelter",
     name: "Duplicate",
     guesserPrompt: "test",
-    solutionPrompt: "test",
+    acceptedAnswers: ["test"],
     roles: [{ name: "Role", mandatory: true, prompt: "prompt" }],
   };
 
@@ -302,7 +311,7 @@ test("validateSituationDraft accepts a well-formed draft with a unique id", () =
     id: "new-scenario",
     name: "New Scenario",
     guesserPrompt: "test",
-    solutionPrompt: "test",
+    acceptedAnswers: ["test"],
     roles: [{ name: "Role", mandatory: true, prompt: "prompt" }],
   };
 
@@ -314,7 +323,7 @@ test("normalizeSituation is exported and strips unknown fields", () => {
     id: "x",
     name: "X",
     guesserPrompt: "q",
-    solutionPrompt: "a",
+    acceptedAnswers: ["a"],
     roles: [{ name: "Role", mandatory: true, prompt: "p" }],
     unexpectedField: "should be dropped",
   });

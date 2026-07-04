@@ -6,7 +6,12 @@ export const SITUATIONS = [
     "id": "animal-shelter",
     "name": "Animal Shelter",
     "guesserPrompt": "What animal is taken home?",
-    "solutionPrompt": "Cat",
+    "acceptedAnswers": [
+      "Cat",
+      "Dog",
+      "The Cat",
+      "The Dog"
+    ],
     "roles": [
       {
         "name": "Injured Dog",
@@ -21,7 +26,7 @@ export const SITUATIONS = [
       {
         "name": "Animal Caretaker",
         "mandatory": true,
-        "prompt": "Take care of the animals and visitors. You have to help the parent take home the pet they want by any means necessary."
+        "prompt": "Take care of the animals and visitors. You have to help {Parent}, the parent, take home the pet they want by any means necessary."
       },
       {
         "name": "Child",
@@ -31,51 +36,12 @@ export const SITUATIONS = [
       {
         "name": "Parent",
         "mandatory": true,
-        "prompt": "You came with your child to choose a pet. You really want a dog because it leaves less fur."
+        "prompt": "You came with your child, {Child} to choose a pet. You really want a dog because it leaves less fur."
       },
       {
         "name": "Grumpy Cat",
         "mandatory": false,
         "prompt": "You are a grumpy cat. You can't use words."
-      }
-    ],
-    "acceptedAnswers": [
-      "Cat",
-      "Dog",
-      "The Cat",
-      "The Dog"
-    ]
-  },
-  {
-    "id": "vet-clinic",
-    "name": "Vet Clinic",
-    "guesserPrompt": "[Player] _ an _ _ to the _ _.",
-    "solutionPrompt": "{focusPlayer} brought an injured dog to a veterinary clinic.",
-    "roles": [
-      {
-        "name": "Blue - Injured Dog",
-        "mandatory": true,
-        "prompt": "You are an injured dog. You cannot use words."
-      },
-      {
-        "name": "Veterinarian",
-        "mandatory": true,
-        "prompt": "You are the veterinary doctor. Ask questions and examine the pets to discover what is wrong."
-      },
-      {
-        "name": "Worried Dog Owner",
-        "mandatory": true,
-        "prompt": "You brought your dog because it has been limping all week."
-      },
-      {
-        "name": "Whimsy cat",
-        "mandatory": false,
-        "prompt": "You are a whimsy cat. You constantly interrupt and mess with people. You are jealous of the attention the dog gets"
-      },
-      {
-        "name": "Clumsy Assistant",
-        "mandatory": false,
-        "prompt": "Assist the veterinarian with tools and notes. You are friendly but a little clumsy."
       }
     ]
   },
@@ -83,12 +49,20 @@ export const SITUATIONS = [
     "id": "pirate-treasure",
     "name": "Pirate Treasure",
     "guesserPrompt": "Where does the ship end up going?",
-    "solutionPrompt": "Island",
+    "acceptedAnswers": [
+      "Island",
+      "Treasure",
+      "Out of the storm",
+      "Shore",
+      "Back to shore",
+      "tresure island",
+      "storm"
+    ],
     "roles": [
       {
-        "name": "Silent Helmsman",
-        "mandatory": true,
-        "prompt": "You man the steering wheel. You have to listen to your captain, but you want to get out of the storm and back to shore."
+        "name": "Helmsman",
+        "mandatory": false,
+        "prompt": "You man the steering wheel. You have to listen to your captain, {Captain}, but you want to get out of the storm and back to shore."
       },
       {
         "name": "Seasick Mate",
@@ -98,59 +72,106 @@ export const SITUATIONS = [
       {
         "name": "First Mate",
         "mandatory": true,
-        "prompt": "You want to go back to shore so that the crew stays safe."
+        "prompt": "You want to go back to shore so that the crew stays safe. {Captain} is the captain."
       },
       {
         "name": "Captain",
         "mandatory": true,
-        "prompt": "You want to push trough the storm to get to the treasure on the island."
+        "prompt": "You want to push trough the storm to get to the treasure on the island. {First Mate} is the first mate."
       },
       {
         "name": "Slimey Second Mate",
         "mandatory": false,
-        "prompt": "You always agree with the Captain because you want to go up in rank."
+        "prompt": "You always agree with {Captain}, the Captain, because you want to go up in rank."
       }
-    ],
-    "acceptedAnswers": [
-      "Island",
-      "Treasure",
-      "Out of the storm",
-      "Shore",
-      "Back to shore",
-      "tresure island",
-      "storm"
     ]
   },
   {
-    "id": "sushi-restaurant",
-    "name": "Sushi Restaurant",
-    "guesserPrompt": "_ at a _ _.",
-    "solutionPrompt": "Date at a sushi restaurant.",
+    "id": "bridal-boutique-showdown",
+    "name": "Bridal Boutique Showdown",
+    "guesserPrompt": "Which wedding gown gets chosen?",
+    "acceptedAnswers": [
+      "Mermaid",
+      "Mermaid gown",
+      "Mermaid dress",
+      "The Mermaid",
+      "Mermaid style",
+      "Mermaid wedding dress"
+    ],
     "roles": [
       {
-        "name": "Head Sushi Chef",
+        "name": "Bride",
+        "mandatory": true,
+        "prompt": "You want the daring Mermaid gown, but {Mother of the Bride} keeps pushing you toward something modest."
+      },
+      {
+        "name": "Mother of the Bride",
+        "mandatory": true,
+        "prompt": "You're paying, and want {Bride} in the modest Ballgown, not the Mermaid. Say what the family will think."
+      },
+      {
+        "name": "Seamstress",
+        "mandatory": true,
+        "prompt": "You fuss over {Mother of the Bride} and praise the Ballgown, but every pin quietly makes the Mermaid fit {Bride} better."
+      },
+      {
+        "name": "Maid of Honor",
         "mandatory": false,
-        "prompt": "You only speak Japanese. You are cooking in front of a couple."
+        "prompt": "You back {Bride} and hype the Mermaid, ignoring {Mother of the Bride}'s glares."
       },
       {
-        "name": "Date Guest",
-        "mandatory": true,
-        "prompt": "You are on a date with {focusPlayer}"
+        "name": "Boutique Manager",
+        "mandatory": false,
+        "prompt": "You worry about the schedule and side with {Mother of the Bride}, since she signs the check."
       },
       {
-        "name": "Date Planner",
+        "name": "Flower Girl",
+        "mandatory": false,
+        "prompt": "You spin in circles and can't speak, just react to whichever dress looks prettiest."
+      }
+    ]
+  },
+  {
+    "id": "kitchen-fire-order",
+    "name": "Kitchen Rush",
+    "guesserPrompt": "What dish leaves the kitchen first?",
+    "acceptedAnswers": [
+      "Wagyu Steak",
+      "The Wagyu Steak",
+      "Steak",
+      "Wagyu",
+      "The Steak"
+    ],
+    "roles": [
+      {
+        "name": "Head Chef",
         "mandatory": true,
-        "prompt": "You planned this anniversary dinner date and want everything to feel perfect."
+        "prompt": "You run the line. You want the Wagyu Steak plated first tonight, no matter what {Sous Chef} says about ticket order."
+      },
+      {
+        "name": "Sous Chef",
+        "mandatory": true,
+        "prompt": "You're going by the ticket rail. You insist the Lobster Risotto goes out first, and you keep blocking {Head Chef} from grabbing a plate early."
+      },
+      {
+        "name": "Expediter",
+        "mandatory": true,
+        "prompt": "You call out orders and are supposed to be neutral, but you keep calling the Wagyu Steak toward the pass, siding with {Head Chef}."
       },
       {
         "name": "Waiter",
-        "mandatory": true,
-        "prompt": "You are a waiter at a sushi restaurant. You take the couples order."
+        "mandatory": false,
+        "prompt": "You keep coming back asking if the Lobster Risotto is ready, pressuring {Sous Chef} to hurry it out."
       },
       {
         "name": "Dishwasher",
         "mandatory": false,
-        "prompt": "You are overwhelmed with dishes and keep bumping into the kitchen staff."
+        "prompt": "You silently pile up dirty pans in the background, oblivious to the standoff."
+      },
+      {
+        "name": "Food Critic",
+        "mandatory": false,
+        "prompt": "You're seated undercover and periodically peek toward the kitchen, making everyone nervous without saying why."
       }
     ]
   }

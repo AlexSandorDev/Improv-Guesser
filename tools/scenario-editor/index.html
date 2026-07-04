@@ -225,8 +225,7 @@
       id: editing ? editing.id : "",
       idManuallyEdited: Boolean(editing),
       guesserPrompt: editing ? editing.guesserPrompt : "",
-      solutionPrompt: editing ? editing.solutionPrompt : "",
-      acceptedAnswers: editing && editing.acceptedAnswers ? [...editing.acceptedAnswers] : [],
+      acceptedAnswers: editing ? [...editing.acceptedAnswers] : [],
       roles: editing ? editing.roles.map((r) => ({ ...r })) : [{ name: "", prompt: "", mandatory: true }],
     };
 
@@ -270,7 +269,7 @@
           <h2 style="margin:0;font-size:1.1rem">Accepted Answers</h2>
           <button type="button" class="secondary" data-action="add-answer">+ Add Answer</button>
         </div>
-        <p class="hint">Alternate phrasings that also count as correct. Leave empty to only accept the Solution text.</p>
+        <p class="hint">All the phrasings that count as correct (at least one is required). If the guesser never answers correctly, the first one is shown as the reveal.</p>
         ${draft.acceptedAnswers
           .map(
             (answer, index) => `
@@ -297,10 +296,6 @@
           <label for="f-question">Question</label>
           <p class="hint">Shown to the guesser. Use <code>[Player]</code> or <code>_</code> for blanks, e.g. <code>[Player] _ a _ from the _ _.</code></p>
           <textarea id="f-question" rows="2">${escapeHtml(draft.guesserPrompt)}</textarea>
-
-          <label for="f-solution">Solution</label>
-          <p class="hint">The answer, revealed when the round ends. Supports <code>{focusPlayer}</code> and <code>{guesser}</code> tokens.</p>
-          <textarea id="f-solution" rows="2">${escapeHtml(draft.solutionPrompt)}</textarea>
         </div>
 
         <div class="card">${renderAnswers()}</div>
@@ -333,9 +328,6 @@
 
       document.getElementById("f-question").addEventListener("input", (event) => {
         draft.guesserPrompt = event.target.value;
-      });
-      document.getElementById("f-solution").addEventListener("input", (event) => {
-        draft.solutionPrompt = event.target.value;
       });
 
       app.querySelectorAll("[data-role-field]").forEach((el) => {
@@ -396,20 +388,22 @@
 
       app.querySelector('[data-action="save"]').addEventListener("click", async () => {
         const trimmedAnswers = draft.acceptedAnswers.map((a) => a.trim()).filter(Boolean);
+        if (trimmedAnswers.length === 0) {
+          banner = { type: "error", message: "At least one Accepted Answer is required." };
+          paint();
+          return;
+        }
         const situation = {
           id: draft.id.trim(),
           name: draft.name.trim(),
           guesserPrompt: draft.guesserPrompt.trim(),
-          solutionPrompt: draft.solutionPrompt.trim(),
+          acceptedAnswers: trimmedAnswers,
           roles: draft.roles.map((role) => ({
             name: role.name.trim(),
             prompt: role.prompt.trim(),
             mandatory: role.mandatory,
           })),
         };
-        if (trimmedAnswers.length > 0) {
-          situation.acceptedAnswers = trimmedAnswers;
-        }
         if (existingIds.includes(situation.id)) {
           banner = { type: "error", message: `"id" must be unique — "${situation.id}" is already used by another scenario.` };
           paint();
