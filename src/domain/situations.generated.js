@@ -146,22 +146,22 @@ export const SITUATIONS = [
       {
         "name": "Head Chef",
         "mandatory": true,
-        "prompt": "You run the line. You want the Wagyu Steak plated first tonight, no matter what {Sous Chef} says about ticket order."
+        "prompt": "You run the line and want the Wagyu Steak plated first, no matter what {Sous Chef} says about ticket order."
       },
       {
         "name": "Sous Chef",
         "mandatory": true,
-        "prompt": "You're going by the ticket rail. You insist the Lobster Risotto goes out first, and you keep blocking {Head Chef} from grabbing a plate early."
+        "prompt": "You go by the ticket rail and insist the Lobster Risotto goes out first, blocking {Head Chef} from grabbing a plate early."
       },
       {
         "name": "Expediter",
         "mandatory": true,
-        "prompt": "You call out orders and are supposed to be neutral, but you keep calling the Wagyu Steak toward the pass, siding with {Head Chef}."
+        "prompt": "You call out orders and are supposed to be neutral, but you keep sending the Wagyu Steak to the pass, siding with {Head Chef}."
       },
       {
         "name": "Waiter",
         "mandatory": false,
-        "prompt": "You keep coming back asking if the Lobster Risotto is ready, pressuring {Sous Chef} to hurry it out."
+        "prompt": "You keep asking if the Lobster Risotto is ready, pressuring {Sous Chef} to hurry it out."
       },
       {
         "name": "Dishwasher",
@@ -171,7 +171,7 @@ export const SITUATIONS = [
       {
         "name": "Food Critic",
         "mandatory": false,
-        "prompt": "You're seated undercover and periodically peek toward the kitchen, making everyone nervous without saying why."
+        "prompt": "You're seated undercover, peeking toward the kitchen and making everyone nervous without saying why."
       }
     ]
   }
