@@ -1,4 +1,4 @@
-function GuessAttempts({ attempts, maxAttempts = 6 }) {
+function GuessAttempts({ attempts, maxAttempts }) {
   const slots = Array.from({ length: maxAttempts }, (_, index) => attempts[index] ?? null);
 
   return (

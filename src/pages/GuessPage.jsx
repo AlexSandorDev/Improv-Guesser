@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useOutletContext } from "react-router-dom"
 import GuessAttempts from "../components/GuessAttempts";
 
 function GuessPage() {
-  const { round, roundNumber, roundOver, attempts, submitGuess, startNewRound, backToSetup } =
+  const { round, roundNumber, roundOver, attempts, initialLives, submitGuess, startNewRound, backToSetup } =
     useOutletContext();
   const navigate = useNavigate();
   const [guessInput, setGuessInput] = useState("");
@@ -40,7 +40,7 @@ function GuessPage() {
     <section className="d-grid gap-3 py-3">
       <p className="fs-5 fw-bold mb-0">Round {roundNumber}</p>
 
-      <GuessAttempts attempts={attempts} />
+      <GuessAttempts attempts={attempts} maxAttempts={initialLives} />
 
       {!roundOver && (
         <form onSubmit={handleSubmit} className="d-grid gap-3">
@@ -63,7 +63,7 @@ function GuessPage() {
           <div className="card-body text-center d-grid gap-3">
             <p className="fs-5 fw-bold mb-0">{wasCorrect ? "Correct!" : "Out of lives!"}</p>
             <p className="text-body-secondary mb-0">Answer</p>
-            <h3 className="mb-0">{round.solution}</h3>
+            <h3 className="mb-0">{wasCorrect ? lastAttempt.text : round.solution}</h3>
           </div>
         </div>
       )}

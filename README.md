@@ -11,7 +11,7 @@ npm run dev
 
 ## How it works
 
-1. Enter player names (minimum 4).
+1. Enter player names (minimum 2).
 2. Hand the phone to each player as their name appears.
 3. Each player taps **Reveal Role** privately, then hides and passes.
 4. Start the improv scene. The guesser tries to identify the situation.

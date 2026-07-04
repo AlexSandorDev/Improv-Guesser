@@ -7,7 +7,7 @@ import RevealPage from "./pages/RevealPage";
 import RolesPage from "./pages/RolesPage";
 import SetupPage from "./pages/SetupPage";
 
-const INITIAL_LIVES = 6;
+const INITIAL_LIVES = 3;
 
 function GameLayout() {
   const [players, setPlayers] = useState([]);
@@ -80,6 +80,7 @@ function GameLayout() {
         roundNumber,
         roundOver,
         attempts,
+        initialLives: INITIAL_LIVES,
         revealedLiveRoles,
         startGame,
         submitGuess,
